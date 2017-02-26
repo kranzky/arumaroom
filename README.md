@@ -1,19 +1,18 @@
-# Quasar App
+ArumaRoom
+=========
 
-> A Quasar project
+Control light and music with your hands.
 
-## Build Setup
+Installation
+------------
 
-``` bash
-# install dependencies
-$ npm install
-
-# serve with hot reload at localhost:8080
-$ quasar dev
-
-# build for production with minification
-$ quasar build
-
-# lint code
-$ quasar lint
 ```
+> nvm use 7.6.0
+> yarn install
+> quasar dev
+```
+
+Copyright
+---------
+
+Copyright (c) 2017 Lloyd Kranzky. See UNLICENSE for further details.
