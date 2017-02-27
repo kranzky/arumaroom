@@ -1,6 +1,8 @@
 ArumaRoom
 =========
 
+:boom:
+
 Control light and music with your hands.
 
 Installation
