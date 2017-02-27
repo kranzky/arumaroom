@@ -12,7 +12,10 @@ const TEXTURES = [
   'open',
   'closed',
   'point',
-  'pinch'
+  'pinch',
+  'stars',
+  'planet',
+  'moon'
 ]
 
 class Room {
@@ -45,6 +48,18 @@ class Room {
     this.world = new PIXI.Container()
     this.engine.stage.addChild(this.world)
     this.size()
+    this.stars = new PIXI.Sprite(this.textures['stars'])
+    this.stars.anchor.x = 0.5
+    this.stars.anchor.y = 0.5
+    this.stars.scale.x = 5
+    this.stars.scale.y = 5
+    this.world.addChild(this.stars)
+    this.planet = new PIXI.Sprite(this.textures['planet'])
+    this.planet.anchor.x = 0.5
+    this.planet.anchor.y = 0.5
+    this.planet.scale.x = 0.1
+    this.planet.scale.y = 0.1
+    this.world.addChild(this.planet)
     Leap.loop({}, (frame) => this.loop(frame.timestamp, frame.hands))
   }
 
@@ -62,6 +77,10 @@ class Room {
 
   loop (ms, hands) {
     let alive = []
+    let spin = 0
+    let zoom = 0
+    let tx = 0
+    let ty = 0
     hands.forEach(hand => {
       if (hand.valid && hand.confidence > 0.3) {
         let entity = this.entities[hand.id] || this.spawnHand(hand.id, hand.type)
@@ -70,6 +89,19 @@ class Room {
         entity.rotation = [hand.pitch(), hand.roll(), hand.yaw()]
         entity.pinch = hand.pinchStrength
         entity.grab = hand.grabStrength
+        if (entity.pinch < 0.5 && entity.grab < 0.5) {
+          if (hand.type === 'left') {
+            spin += entity.rotation[0]
+            zoom -= entity.rotation[1]
+            tx += entity.rotation[1]
+            ty += entity.rotation[0]
+          } else {
+            spin -= entity.rotation[0]
+            zoom += entity.rotation[1]
+            tx += entity.rotation[1]
+            ty += entity.rotation[0]
+          }
+        }
         entity.update(ms)
       }
     })
@@ -79,6 +111,12 @@ class Room {
         delete this.entities[id]
       }
     }
+    this.stars.rotation += spin * 0.01
+    this.planet.rotation += spin * 0.01
+    this.planet.scale.x += zoom * 0.01
+    this.planet.scale.y += zoom * 0.01
+    this.planet.position.x += tx
+    this.planet.position.y += ty
   }
 
   fini () {
