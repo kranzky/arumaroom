@@ -1,15 +1,5 @@
 <template>
   <q-layout>
-    <div slot="header" class="toolbar">
-      <button class="hide-on-drawer-visible" @click="$refs.preferences.open()">
-        <i>menu</i>
-      </button>
-      <q-toolbar-title :padding="1">
-        ArumaRoom Prototype
-      </q-toolbar-title>
-    </div>
-    <q-drawer ref="preferences">
-    </q-drawer>
     <div class="layout-view">
       <canvas id="viewport"></canvas>
     </div>
