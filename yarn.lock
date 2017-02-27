@@ -4250,6 +4250,10 @@ pixi-gl-core@^1.0.3:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/pixi-gl-core/-/pixi-gl-core-1.1.0.tgz#a52cb4dd3254f9c7857a0e9c2356b00e6ec0c761"
 
+pixi-particles@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/pixi-particles/-/pixi-particles-2.1.1.tgz#c5e59ea355f48907adde4535e3869cd0a8fda17d"
+
 pixi.js@^4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/pixi.js/-/pixi.js-4.4.0.tgz#0dfdf0822f35cd54d0545c201a5414cec07583c5"

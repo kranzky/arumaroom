@@ -1,5 +1,7 @@
 /* global PIXI */
 import 'pixi.js'
+import 'pixi-particles'
+
 import Leap from 'leapjs'
 
 import Hand from 'entities/hand.js'
@@ -15,7 +17,8 @@ const TEXTURES = [
   'pinch',
   'stars',
   'planet',
-  'moon'
+  'moon',
+  'particle'
 ]
 
 class Room {
@@ -94,12 +97,12 @@ class Room {
             spin += entity.rotation[0]
             zoom -= entity.rotation[1]
             tx += entity.rotation[1]
-            ty += entity.rotation[0]
+            ty -= entity.rotation[0]
           } else {
             spin -= entity.rotation[0]
             zoom += entity.rotation[1]
             tx += entity.rotation[1]
-            ty += entity.rotation[0]
+            ty -= entity.rotation[0]
           }
         }
         entity.update(ms)
@@ -113,8 +116,8 @@ class Room {
     }
     this.stars.rotation += spin * 0.01
     this.planet.rotation += spin * 0.01
-    this.planet.scale.x += zoom * 0.01
-    this.planet.scale.y += zoom * 0.01
+    this.planet.scale.x += zoom * 0.001
+    this.planet.scale.y += zoom * 0.001
     this.planet.position.x += tx
     this.planet.position.y += ty
   }

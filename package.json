@@ -17,6 +17,7 @@
     "leapjs": "^0.6.4",
     "material-design-icons": "~3.0.1",
     "moment": "~2.17.1",
+    "pixi-particles": "^2.1.1",
     "pixi.js": "^4.4.0",
     "quasar-framework": "~0.13.1",
     "roboto-fontface": "~0.7.0",
