@@ -5,6 +5,7 @@ import Hand from 'entities/hand.js'
 
 const WIDTH = 1200
 const HEIGHT = 675
+const RATIO = WIDTH / HEIGHT
 
 const TEXTURES = [
   'open',
@@ -36,21 +37,26 @@ class Room {
   }
 
   init () {
-    this.view = new PIXI.Application(WIDTH, HEIGHT, {
+    this.engine = new PIXI.Application(WIDTH, HEIGHT, {
       view: this.canvas,
       antialias: true
     })
     this.world = new PIXI.Container()
-    this.view.stage.addChild(this.world)
-    this.entities['left_hand'] = new Hand(this.textures)
-    this.entities['right_hand'] = new Hand(this.textures, true)
-    this.entities['left_hand'].add(this.world)
-    this.entities['right_hand'].add(this.world)
-    this.entities['left_hand'].set(100, 100, 'pinch')
-    this.entities['right_hand'].set(200, 100, 'pinch')
+    this.engine.stage.addChild(this.world)
+    this.size()
+    this.spawn()
   }
 
   size () {
+    this.world.position.x = this.engine.renderer.width / 2
+    this.world.position.y = this.engine.renderer.height / 2
+    let ratio = this.canvas.scrollWidth / this.canvas.scrollHeight
+    if (ratio < RATIO) {
+      this.world.scale.y = ratio / RATIO
+    }
+    if (ratio > RATIO) {
+      this.world.scale.x = RATIO / ratio
+    }
   }
 
   fini () {
@@ -61,8 +67,17 @@ class Room {
     }
     PIXI.loader.reset()
     this.world.destroy()
-    this.view.destroy()
+    this.engine.destroy()
     window.room = undefined
+  }
+
+  spawn () {
+    this.entities['left_hand'] = new Hand(this.textures, true)
+    this.entities['right_hand'] = new Hand(this.textures)
+    this.entities['left_hand'].add(this.world)
+    this.entities['right_hand'].add(this.world)
+    this.entities['left_hand'].set(-600, -337, 'pinch')
+    this.entities['right_hand'].set(600, 337, 'pinch')
   }
 }
 
