@@ -28,9 +28,9 @@ class Hand {
       this.sprite.scale.x *= -1
     }
     this.sprite.rotation = this.rotation[2]
-    if (this.grab > 0.85) {
+    if (this.grab > 0.7) {
       this.sprite.gotoAndStop(1)
-    } else if (this.pinch > 0.6) {
+    } else if (this.pinch > 0.9 && this.grab < 0.8) {
       this.sprite.gotoAndStop(3)
     } else {
       this.sprite.gotoAndStop(0)

@@ -61,9 +61,11 @@ class Room {
   }
 
   loop (ms, hands) {
+    let alive = []
     hands.forEach(hand => {
       if (hand.valid && hand.confidence > 0.3) {
         let entity = this.entities[hand.id] || this.spawnHand(hand.id, hand.type)
+        alive.push(hand.id.toString())
         entity.position = hand.palmPosition
         entity.rotation = [hand.pitch(), hand.roll(), hand.yaw()]
         entity.pinch = hand.pinchStrength
@@ -71,14 +73,22 @@ class Room {
         entity.update(ms)
       }
     })
+    for (var id in this.entities) {
+      if (alive.indexOf(id) < 0) {
+        this.entities[id].remove(this.world)
+        delete this.entities[id]
+      }
+    }
   }
 
   fini () {
-    for (var id of this.entities) {
+    for (var id in this.entities) {
       this.entities[id].remove(this.world)
+      delete this.entities[id]
     }
     for (var name of TEXTURES) {
       this.textures[name].destroy(true)
+      delete this.textures[name]
     }
     PIXI.loader.reset()
     this.world.destroy()
