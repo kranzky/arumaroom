@@ -4,9 +4,9 @@ import 'pixi.js'
 const TEXTURES = ['open', 'closed', 'point', 'pinch']
 
 class Hand {
-  constructor (flip = false) {
+  constructor (textures, flip = false) {
     this.sprite = new PIXI.extras.AnimatedSprite(
-      TEXTURES.map(name => PIXI.loader.resources[name].texture)
+      TEXTURES.map(name => textures[name])
     )
     this.sprite.anchor.x = 0.5
     this.sprite.anchor.y = 0.5
@@ -27,6 +27,7 @@ class Hand {
 
   remove (world) {
     world.removeChild(this.sprite)
+    this.sprite.destroy(true, true)
   }
 }
 

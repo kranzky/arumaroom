@@ -18,13 +18,20 @@ class Room {
     window.room = this
     this.data = data
     this.canvas = document.getElementById(elementId)
+    this.textures = {}
+    this.entities = {}
   }
 
   load (callback) {
-    for (var texture of TEXTURES) {
-      PIXI.loader.add(texture, require(`assets/${texture}.png`))
+    for (var name of TEXTURES) {
+      PIXI.loader.add(name, require(`assets/${name}.png`))
     }
-    PIXI.loader.once('complete', callback)
+    PIXI.loader.once('complete', () => {
+      for (var name of TEXTURES) {
+        this.textures[name] = PIXI.loader.resources[name].texture
+      }
+      callback()
+    })
     PIXI.loader.load()
   }
 
@@ -35,18 +42,27 @@ class Room {
     })
     this.world = new PIXI.Container()
     this.view.stage.addChild(this.world)
-    let rightHand = new Hand(false)
-    let leftHand = new Hand(true)
-    leftHand.add(this.world)
-    rightHand.add(this.world)
-    leftHand.set(100, 100, 'pinch')
-    rightHand.set(200, 100, 'pinch')
+    this.entities['left_hand'] = new Hand(this.textures)
+    this.entities['right_hand'] = new Hand(this.textures, true)
+    this.entities['left_hand'].add(this.world)
+    this.entities['right_hand'].add(this.world)
+    this.entities['left_hand'].set(100, 100, 'pinch')
+    this.entities['right_hand'].set(200, 100, 'pinch')
   }
 
   size () {
   }
 
   fini () {
+    this.entities['left_hand'].remove(this.world)
+    this.entities['right_hand'].remove(this.world)
+    for (var name of TEXTURES) {
+      this.textures[name].destroy(true)
+    }
+    PIXI.loader.reset()
+    this.world.destroy()
+    this.view.destroy()
+    window.room = undefined
   }
 }
 
