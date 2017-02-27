@@ -1,5 +1,6 @@
 /* global PIXI */
 import 'pixi.js'
+import Leap from 'leapjs'
 
 import Hand from 'entities/hand.js'
 
@@ -44,7 +45,7 @@ class Room {
     this.world = new PIXI.Container()
     this.engine.stage.addChild(this.world)
     this.size()
-    this.spawn()
+    Leap.loop({}, (frame) => this.loop(frame.timestamp, frame.hands))
   }
 
   size () {
@@ -59,9 +60,23 @@ class Room {
     }
   }
 
+  loop (ms, hands) {
+    hands.forEach(hand => {
+      if (hand.valid && hand.confidence > 0.3) {
+        let entity = this.entities[hand.id] || this.spawnHand(hand.id, hand.type)
+        entity.position = hand.palmPosition
+        entity.rotation = [hand.pitch(), hand.roll(), hand.yaw()]
+        entity.pinch = hand.pinchStrength
+        entity.grab = hand.grabStrength
+        entity.update(ms)
+      }
+    })
+  }
+
   fini () {
-    this.entities['left_hand'].remove(this.world)
-    this.entities['right_hand'].remove(this.world)
+    for (var id of this.entities) {
+      this.entities[id].remove(this.world)
+    }
     for (var name of TEXTURES) {
       this.textures[name].destroy(true)
     }
@@ -71,13 +86,10 @@ class Room {
     window.room = undefined
   }
 
-  spawn () {
-    this.entities['left_hand'] = new Hand(this.textures, true)
-    this.entities['right_hand'] = new Hand(this.textures)
-    this.entities['left_hand'].add(this.world)
-    this.entities['right_hand'].add(this.world)
-    this.entities['left_hand'].set(-600, -337, 'pinch')
-    this.entities['right_hand'].set(600, 337, 'pinch')
+  spawnHand (id, type) {
+    this.entities[id] = new Hand(this.textures, type === 'left')
+    this.entities[id].add(this.world)
+    return this.entities[id]
   }
 }
 

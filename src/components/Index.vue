@@ -25,9 +25,6 @@
   export default {
     data () {
       return {
-        debug: false,
-        hands: true,
-        music: false
       }
     },
     methods: {
