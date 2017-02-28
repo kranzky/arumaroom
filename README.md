@@ -14,6 +14,13 @@ Installation
 > quasar dev
 ```
 
+Audio
+-----
+
+```
+> ffmpeg -i name.mp3 -strict -2 name.webm
+```
+
 Copyright
 ---------
 

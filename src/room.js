@@ -3,12 +3,18 @@ import 'pixi.js'
 import 'pixi-particles'
 
 import Leap from 'leapjs'
+import { Howl } from 'howler'
 
 import Hand from 'entities/hand.js'
 
 const WIDTH = 1200
 const HEIGHT = 675
 const RATIO = WIDTH / HEIGHT
+
+const MUSIC = [
+  'bensound-dubstep',
+  'bensound-moose'
+]
 
 const TEXTURES = [
   'open',
@@ -27,15 +33,22 @@ class Room {
     this.data = data
     this.canvas = document.getElementById(elementId)
     this.textures = {}
+    this.music = {}
     this.entities = {}
   }
 
   load (callback) {
-    for (var name of TEXTURES) {
+    for (var name of MUSIC) {
+      this.music[name] = new Howl({
+        src: [require(`assets/${name}.webm`), require(`assets/${name}.mp3`)],
+        loop: true
+      })
+    }
+    for (name of TEXTURES) {
       PIXI.loader.add(name, require(`assets/${name}.png`))
     }
     PIXI.loader.once('complete', () => {
-      for (var name of TEXTURES) {
+      for (name of TEXTURES) {
         this.textures[name] = PIXI.loader.resources[name].texture
       }
       callback()
@@ -63,6 +76,12 @@ class Room {
     this.planet.scale.x = 0.1
     this.planet.scale.y = 0.1
     this.world.addChild(this.planet)
+    this.channels = []
+    for (var name of MUSIC) {
+      let id = this.music[name].play()
+      this.music[name].volume(0, id)
+      this.channels.push(id)
+    }
     Leap.loop({}, (frame) => this.loop(frame.timestamp, frame.hands))
   }
 
@@ -105,6 +124,19 @@ class Room {
             ty -= entity.rotation[0]
           }
         }
+        if (entity.grab > 0.7) {
+          let volume = (entity.position[1] - 50) / 400.0
+          if (volume < 0) {
+            volume = 0
+          } else if (volume > 1) {
+            volume = 1
+          }
+          if (hand.type === 'left') {
+            this.music[MUSIC[0]].volume(volume, this.channels[0])
+          } else {
+            this.music[MUSIC[1]].volume(volume, this.channels[1])
+          }
+        }
         entity.update(ms)
       }
     })
@@ -130,6 +162,9 @@ class Room {
     for (var name of TEXTURES) {
       this.textures[name].destroy(true)
       delete this.textures[name]
+    }
+    for (name of MUSIC) {
+      this.music[name].unload()
     }
     PIXI.loader.reset()
     this.world.destroy()
