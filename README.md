@@ -14,6 +14,15 @@ Installation
 > quasar dev
 ```
 
+Controls
+--------
+
+* Make fist to change sound volume by moving hand up and down
+* Make an OK sign to draw a trail in the sky
+* Pitch hands in opposite directions to rotate
+* Roll hands in opposite directions to zoom
+* Pitch/Roll hands in same direction to translate
+
 Audio
 -----
 
