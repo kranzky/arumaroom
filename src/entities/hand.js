@@ -29,10 +29,13 @@ class Hand {
     this.sprite.scale.x = scale
     this.sprite.scale.y = scale
     this.sparks.emitter.updateOwnerPos(this.sprite.position.x, this.sprite.position.y)
-    this.sparks.emitter.startScale = scale
+    this.sparks.emitter.startScale = scale * 0.4
     this.sparks.emitter.endScale = 0.1 * scale
     if (this.flip) {
       this.sprite.scale.x *= -1
+      this.sparks.emitter.spawnPos.x = 24 * scale
+    } else {
+      this.sparks.emitter.spawnPos.x = -24 * scale
     }
     this.sprite.rotation = this.rotation[2]
     this.sparks.emitter.maxParticles = 0
