@@ -7,6 +7,8 @@ import { Howl } from 'howler'
 
 import Hand from 'entities/hand.js'
 
+import Socket from './socket'
+
 const WIDTH = 1200
 const HEIGHT = 675
 const RATIO = WIDTH / HEIGHT
@@ -62,6 +64,7 @@ class Room {
       antialias: true
     })
     this.world = new PIXI.Container()
+    this.socket = new Socket()
     this.engine.stage.addChild(this.world)
     this.size()
     this.stars = new PIXI.Sprite(this.textures['stars'])
@@ -131,6 +134,7 @@ class Room {
           } else if (volume > 1) {
             volume = 1
           }
+          this.socket.send('volume', volume)
           if (hand.type === 'left') {
             this.music[MUSIC[0]].volume(volume, this.channels[0])
           } else {
