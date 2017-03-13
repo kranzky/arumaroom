@@ -11,7 +11,6 @@ class Socket {
   send (event, data) {
     this.io.emit(event, data)
   }
-
 }
 
 export default Socket
