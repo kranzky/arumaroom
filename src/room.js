@@ -81,12 +81,7 @@ class Room {
     this.planet.scale.x = 0.1
     this.planet.scale.y = 0.1
     this.world.addChild(this.planet)
-    this.channels = []
-    for (var name of MUSIC) {
-      let id = this.music[name].play()
-      this.music[name].volume(0, id)
-      this.channels.push(id)
-    }
+    this.track = null
     this.spawnHand('left', 'left')
     this.spawnHand('right', 'right')
     Leap.loop({ background: true }, (frame) => this.loop(frame.timestamp, frame.hands, frame.gestures))
@@ -123,7 +118,6 @@ class Room {
     for (var id in this.entities) {
       this.entities[id].update(dt)
     }
-
         /*
         if (entity.pinch < 0.5 && entity.grab < 0.5) {
           if (hand.type === 'left') {
@@ -145,23 +139,47 @@ class Room {
           } else if (volume > 1) {
             volume = 1
           }
-          // this.socket.send('volume', volume)
           if (hand.type === 'left') {
             this.music[MUSIC[0]].volume(volume, this.channels[0])
           } else {
             this.music[MUSIC[1]].volume(volume, this.channels[1])
           }
         }
-        entity.update(time)
         */
-    /*
-    this.stars.rotation += spin * 0.01
-    this.planet.rotation += spin * 0.01
-    this.planet.scale.x += zoom * 0.001
-    this.planet.scale.y += zoom * 0.001
-    this.planet.position.x += tx
-    this.planet.position.y += ty
-    */
+    // this.actions(dt)
+
+    // CAMERA
+    this.stars.rotation += this.data.camera.tilt * dt * 0.003
+    this.planet.rotation += this.data.camera.tilt * dt * 0.003
+    this.planet.scale.x += this.data.camera.zoom * dt * 0.001
+    this.planet.scale.y += this.data.camera.zoom * dt * 0.001
+    this.planet.position.x += this.data.camera.pan[0] * dt
+    this.planet.position.y += this.data.camera.pan[1] * dt
+
+    // LIGHTS
+    // this.socket.send('colour', this.data.lights.colour)
+    // this.socket.send('pattern', this.data.lights.pattern)
+
+    // MUSIC
+    // this.socket.send('volume', this.data.music.volume)
+    if (this.track !== this.data.music.track) {
+      if (this.track) {
+        this.music[this.track].stop()
+      }
+      this.track = this.data.music.track
+      this.music[this.track].play()
+    }
+    if (this.track) {
+      this.music[this.track].volume(this.data.music.volume * 0.001)
+    }
+
+    // VISUALS
+    this.entities['left'].trail = false
+    this.entities['right'].trail = false
+    for (var effect of this.data.visual.effect) {
+      this.entities['left'].trail = (effect === 'trails')
+      this.entities['right'].trail = (effect === 'trails')
+    }
   }
 
   fini () {

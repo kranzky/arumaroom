@@ -86,25 +86,25 @@
               <div class="item two-lines">
                 <i class="item-primary">arrow_forward</i>
                 <div class="item-content">
-                  <q-range v-model="camera.pan[0]" :min="-1" :max="1"></q-range>
+                  <q-range v-model="camera.pan[0]" :min="-500" :max="500"></q-range>
                 </div>
               </div>
               <div class="item two-lines">
                 <i class="item-primary">arrow_upward</i>
                 <div class="item-content">
-                  <q-range v-model="camera.pan[1]" :min="-1" :max="1"></q-range>
+                  <q-range v-model="camera.pan[1]" :min="-500" :max="500"></q-range>
                 </div>
               </div>
               <div class="item two-lines">
                 <i class="item-primary">rotate_right</i>
                 <div class="item-content">
-                  <q-range v-model="camera.tilt" :min="-1" :max="1"></q-range>
+                  <q-range v-model="camera.tilt" :min="-500" :max="500"></q-range>
                 </div>
               </div>
               <div class="item two-lines">
                 <i class="item-primary">zoom_out_map</i>
                 <div class="item-content">
-                  <q-range v-model="camera.zoom" :min="-1" :max="1"></q-range>
+                  <q-range v-model="camera.zoom" :min="-500" :max="500"></q-range>
                 </div>
               </div>
             </div>
@@ -136,7 +136,7 @@
               <div class="item two-lines">
                 <i class="item-primary">volume_up</i>
                 <div class="item-content">
-                  <q-range v-model="music.volume" :min="0" :max="1"></q-range>
+                  <q-range v-model="music.volume" :min="0" :max="1000"></q-range>
                 </div>
               </div>
               <div class="item two-lines">
@@ -164,7 +164,7 @@
               <div class="item two-lines">
                 <i class="item-primary">looks</i>
                 <div class="item-content">
-                  <q-select type="list" v-model="visual.effect" :options="visual.effects" placeholder="Effect"></q-select>
+                  <q-select type="checkbox" v-model="visual.effect" :options="visual.effects" placeholder="Effect"></q-select>
                 </div>
               </div>
             </div>
@@ -237,7 +237,7 @@
             value: 'bensound-moose'
           }],
           track: null,
-          volume: 0.5,
+          volume: 500,
           filters: [{
             label: 'Lowpass',
             value: 'lowpass'
@@ -272,7 +272,7 @@
             label: 'Hand Trails',
             value: 'trails'
           }],
-          effect: null
+          effect: []
         }
       }
     },
