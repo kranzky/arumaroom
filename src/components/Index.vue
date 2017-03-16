@@ -23,19 +23,23 @@
             <div>
               <dl>
                 <dt>Position</dt>
-                <dd>{{ hands.left.position }}</dd>
+                <dd>{{ hands.left.position.map(num => num.toFixed(1)).join(', ') }}</dd>
               </dl>
               <dl>
                 <dt>Rotation</dt>
-                <dd>{{ hands.left.rotation }}</dd>
+                <dd>{{ hands.left.rotation.map(num => num.toFixed(2)).join(', ') }}</dd>
               </dl>
               <dl>
                 <dt>Pinch</dt>
-                <dd>{{ hands.left.pinch }}</dd>
+                <dd>{{ hands.left.pinch.toFixed(2) }}</dd>
               </dl>
               <dl>
                 <dt>Grab</dt>
-                <dd>{{ hands.left.grab }}</dd>
+                <dd>{{ hands.left.grab.toFixed(2) }}</dd>
+              </dl>
+              <dl>
+                <dt>Gesture</dt>
+                <dd>{{ hands.left.gesture || '-' }}</dd>
               </dl>
             </div>
           </q-collapsible>
@@ -43,19 +47,23 @@
             <div>
               <dl>
                 <dt>Position</dt>
-                <dd>{{ hands.right.position }}</dd>
+                <dd>{{ hands.right.position.map(num => num.toFixed(1)).join(', ') }}</dd>
               </dl>
               <dl>
                 <dt>Rotation</dt>
-                <dd>{{ hands.right.rotation }}</dd>
+                <dd>{{ hands.right.rotation.map(num => num.toFixed(2)).join(', ') }}</dd>
               </dl>
               <dl>
                 <dt>Pinch</dt>
-                <dd>{{ hands.right.pinch }}</dd>
+                <dd>{{ hands.right.pinch.toFixed(2) }}</dd>
               </dl>
               <dl>
                 <dt>Grab</dt>
-                <dd>{{ hands.right.grab }}</dd>
+                <dd>{{ hands.right.grab.toFixed(2) }}</dd>
+              </dl>
+              <dl>
+                <dt>Gesture</dt>
+                <dd>{{ hands.right.gesture || '-' }}</dd>
               </dl>
             </div>
           </q-collapsible>
@@ -180,16 +188,18 @@
         bogus: 0,
         hands: {
           left: {
-            position: [0, 0, 0],
+            position: [-100, 200, 100],
             rotation: [0, 0, 0],
             pinch: 0,
-            grab: 0
+            grab: 0,
+            gesture: null
           },
           right: {
-            position: [0, 0, 0],
+            position: [100, 200, 100],
             rotation: [0, 0, 0],
             pinch: 0,
-            grab: 0
+            grab: 0,
+            gesture: null
           }
         },
         camera: {
