@@ -16,6 +16,7 @@ class Hand {
     this.data = data
     this.pose = null
     this.pose_cooldown = 0
+    this.gesture = null
     this.gesture_cooldown = 0
     this.trail = false
     this.flip = flip
@@ -24,6 +25,7 @@ class Hand {
 
   control (hand, gestures) {
     this.data.position = hand.palmPosition
+    this.velocity = hand.palmVelocity
     this.data.rotation = [hand.pitch(), hand.roll(), hand.yaw()]
     this.data.pinch = hand.pinchStrength
     this.data.grab = hand.grabStrength
@@ -34,7 +36,7 @@ class Hand {
       } else if (this.data.grab < 0.3 && this.pose === 'grab') {
         this.pose = null
         this.pose_cooldown = 0.3
-      } else if (this.data.pinch > 0.9 && this.data.grab < 0.5 && !this.pose) {
+      } else if (this.data.pinch > 0.9 && this.data.grab < 0.3 && !this.pose) {
         this.pose = 'pinch'
         this.pose_cooldown = 0.3
       } else if ((this.data.pinch < 0.6 || this.data.grab > 0.5) && this.pose === 'pinch') {
@@ -42,6 +44,7 @@ class Hand {
         this.pose_cooldown = 0.3
       }
     }
+    this.gesture = null
     if (this.gesture_cooldown === 0) {
       this.data.gesture = null
       for (var gesture of gestures) {
@@ -73,6 +76,7 @@ class Hand {
           }
         }
       }
+      this.gesture = this.data.gesture
     }
   }
 

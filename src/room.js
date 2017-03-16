@@ -109,6 +109,8 @@ class Room {
     let dt = (time - this.last_frame) * 0.000001
     this.game_time += dt
     this.last_frame = time
+
+    // process inputs
     hands.forEach(hand => {
       if (hand.valid && hand.confidence > 0.2) {
         let entity = this.entities[hand.type]
@@ -118,37 +120,11 @@ class Room {
     for (var id in this.entities) {
       this.entities[id].update(dt)
     }
-        /*
-        if (entity.pinch < 0.5 && entity.grab < 0.5) {
-          if (hand.type === 'left') {
-            spin += entity.rotation[0]
-            zoom -= entity.rotation[1]
-            tx += entity.rotation[1]
-            ty -= entity.rotation[0]
-          } else {
-            spin -= entity.rotation[0]
-            zoom += entity.rotation[1]
-            tx += entity.rotation[1]
-            ty -= entity.rotation[0]
-          }
-        }
-        if (entity.grab > 0.7) {
-          let volume = (entity.position[1] - 50) / 400.0
-          if (volume < 0) {
-            volume = 0
-          } else if (volume > 1) {
-            volume = 1
-          }
-          if (hand.type === 'left') {
-            this.music[MUSIC[0]].volume(volume, this.channels[0])
-          } else {
-            this.music[MUSIC[1]].volume(volume, this.channels[1])
-          }
-        }
-        */
-    // this.actions(dt)
 
-    // CAMERA
+    // use inputs to drive actions
+    this.actions(dt)
+
+    // use actions to drive CAMERA
     this.stars.rotation += this.data.camera.tilt * dt * 0.003
     this.planet.rotation += this.data.camera.tilt * dt * 0.003
     this.planet.scale.x += this.data.camera.zoom * dt * 0.001
@@ -156,11 +132,11 @@ class Room {
     this.planet.position.x += this.data.camera.pan[0] * dt
     this.planet.position.y += this.data.camera.pan[1] * dt
 
-    // LIGHTS
+    // and LIGHTS
     // this.socket.send('colour', this.data.lights.colour)
     // this.socket.send('pattern', this.data.lights.pattern)
 
-    // MUSIC
+    // and MUSIC
     // this.socket.send('volume', this.data.music.volume)
     if (this.track !== this.data.music.track) {
       if (this.track) {
@@ -173,12 +149,75 @@ class Room {
       this.music[this.track].volume(this.data.music.volume * 0.001)
     }
 
-    // VISUALS
+    // and VISUALS
     this.entities['left'].trail = false
     this.entities['right'].trail = false
     for (var effect of this.data.visual.effect) {
       this.entities['left'].trail = (effect === 'trails')
       this.entities['right'].trail = (effect === 'trails')
+    }
+  }
+
+  // this is where we hook inputs to actions
+  actions (dt) {
+    let left = this.entities.left
+    let right = this.entities.right
+
+    // open hands and tilt in opposite directions to rotate camera
+    if (!left.pose && !right.pose) {
+      this.data.camera.tilt = 200 * (left.data.rotation[0] - right.data.rotation[0])
+      this.data.camera.tilt = 200 * (left.data.rotation[0] - right.data.rotation[0])
+      if (this.data.camera.tilt > 500) {
+        this.data.camera.tilt = 500
+      } else if (this.data.camera.tilt < -500) {
+        this.data.camera.tilt = -500
+      }
+    }
+
+    // swipe with right hand to change track
+    if (right.gesture === 'swipe_left') {
+      let id = MUSIC.indexOf(this.data.music.track) - 1
+      if (id < 0) {
+        id = MUSIC.length - 1
+      }
+      this.data.music.track = MUSIC[id]
+    }
+    if (right.gesture === 'swipe_right') {
+      let id = this.data.music.tracks.indexOf(this.data.music.track) + 1
+      if (id >= MUSIC.length) {
+        id = 0
+      }
+      this.data.music.track = MUSIC[id]
+    }
+
+    // pinch with left hand and draw a circle to toggle particle trails
+    if (left.gesture === 'circle' && left.pose === 'pinch') {
+      let index = this.data.visual.effect.indexOf('trails')
+      if (index < 0) {
+        this.data.visual.effect.push('trails')
+      } else {
+        this.data.visual.effect.splice(index, 1)
+      }
+    }
+
+    // grab with both hands to zoom in and out
+    if (left.pose === 'grab' && right.pose === 'grab') {
+      this.data.camera.zoom = 500 - (left.data.position[1] + right.data.position[1] - 100) * 2.5
+      if (this.data.camera.zoom > 500) {
+        this.data.camera.zoom = 500
+      } else if (this.data.camera.zoom < -500) {
+        this.data.camera.zoom = -500
+      }
+    }
+
+    // pinch with right hand to change music volume
+    if (right.pose === 'pinch') {
+      this.data.music.volume = (right.data.position[1] - 50) * 2.5
+      if (this.data.music.volume > 1000) {
+        this.data.music.volume = 1000
+      } else if (this.data.music.volume < 0) {
+        this.data.music.volume = 0
+      }
     }
   }
 
