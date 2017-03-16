@@ -2,9 +2,9 @@ import * as io from 'socket.io-client'
 
 class Socket {
   constructor () {
-    this.io = io('https://leap.dev:3001', {secure: true})
+    this.io = io('https://leap.dev:3001', { secure: true })
     this.io.on('connect', () => {
-      console.log('connected to aruma socket server')
+      console.debug('connected to aruma socket server')
     })
   }
 

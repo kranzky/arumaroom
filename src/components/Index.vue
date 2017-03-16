@@ -19,7 +19,7 @@
       </div>
       <div class="card">
         <div class="list item-delimiter">
-          <q-collapsible opened icon="thumb_up" label="Left Hand">
+          <q-collapsible opened icon="thumb_down" label="Left Hand">
             <div>
               <dl>
                 <dt>Position</dt>
@@ -30,12 +30,16 @@
                 <dd>{{ hands.left.rotation }}</dd>
               </dl>
               <dl>
-                <dt>Pose</dt>
-                <dd>{{ hands.left.pose }}</dd>
+                <dt>Pinch</dt>
+                <dd>{{ hands.left.pinch }}</dd>
+              </dl>
+              <dl>
+                <dt>Grab</dt>
+                <dd>{{ hands.left.grab }}</dd>
               </dl>
             </div>
           </q-collapsible>
-          <q-collapsible opened icon="thumb_down" label="Right Hand">
+          <q-collapsible opened icon="thumb_up" label="Right Hand">
             <div>
               <dl>
                 <dt>Position</dt>
@@ -46,8 +50,12 @@
                 <dd>{{ hands.right.rotation }}</dd>
               </dl>
               <dl>
-                <dt>Pose</dt>
-                <dd>{{ hands.right.pose }}</dd>
+                <dt>Pinch</dt>
+                <dd>{{ hands.right.pinch }}</dd>
+              </dl>
+              <dl>
+                <dt>Grab</dt>
+                <dd>{{ hands.right.grab }}</dd>
               </dl>
             </div>
           </q-collapsible>
@@ -174,12 +182,14 @@
           left: {
             position: [0, 0, 0],
             rotation: [0, 0, 0],
-            pose: 'open'
+            pinch: 0,
+            grab: 0
           },
           right: {
             position: [0, 0, 0],
             rotation: [0, 0, 0],
-            pose: 'open'
+            pinch: 0,
+            grab: 0
           }
         },
         camera: {
