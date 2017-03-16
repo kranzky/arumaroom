@@ -85,7 +85,7 @@ class Room {
       this.music[name].volume(0, id)
       this.channels.push(id)
     }
-    Leap.loop({}, (frame) => this.loop(frame.timestamp, frame.hands))
+    Leap.loop({}, (frame) => this.loop(frame.timestamp, frame.hands, frame.gestures))
   }
 
   size () {
@@ -100,7 +100,7 @@ class Room {
     }
   }
 
-  loop (ms, hands) {
+  loop (ms, hands, gestures) {
     let alive = []
     let spin = 0
     let zoom = 0
@@ -156,6 +156,22 @@ class Room {
     this.planet.scale.y += zoom * 0.001
     this.planet.position.x += tx
     this.planet.position.y += ty
+
+    if (gestures.length > 0) {
+      var g = gestures[0]
+      if (g.type === 'swipe' && g.state === 'stop') {
+        console.log(gestures)
+        var xMov = Math.abs(g.direction[0])
+        // var yMov = Math.abs(g.direction[1])
+        if (xMov > 0.3) {
+          if (g.direction[0] < 0) {
+            console.log('left')
+          } else {
+            console.log('right')
+          }
+        }
+      }
+    }
   }
 
   fini () {
