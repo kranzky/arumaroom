@@ -12,6 +12,7 @@ import Hand from 'entities/hand.js'
 const WIDTH = 1200
 const HEIGHT = 675
 const RATIO = WIDTH / HEIGHT
+const FPS = 50
 
 const MUSIC = [
   'bensound-dubstep',
@@ -30,15 +31,15 @@ const TEXTURES = [
 ]
 
 class Room {
-  constructor (elementId, data) {
+  constructor (elementId) {
     window.room = this
     this.game_time = 0
-    this.last_frame = null
-    this.data = data
+    this.seconds_per_frame = 1.0 / FPS
     this.canvas = document.getElementById(elementId)
     this.textures = {}
     this.music = {}
     this.entities = {}
+    this.data = null
   }
 
   load (callback) {
@@ -60,7 +61,8 @@ class Room {
     PIXI.loader.load()
   }
 
-  init () {
+  init (data) {
+    this.data = data
     this.engine = new PIXI.Application(WIDTH, HEIGHT, {
       view: this.canvas,
       antialias: true
@@ -84,7 +86,8 @@ class Room {
     this.track = null
     this.spawnHand('left', 'left')
     this.spawnHand('right', 'right')
-    Leap.loop({ background: true }, (frame) => this.loop(frame.timestamp, frame.hands, frame.gestures))
+    Leap.loop({ background: true }, (frame) => this.leap(frame.timestamp, frame.hands, frame.gestures))
+    this.loop()
   }
 
   size () {
@@ -99,38 +102,48 @@ class Room {
     }
   }
 
-  loop (time, hands, gestures) {
-    if (!this.last_frame) {
-      this.last_frame = time
-    }
-    if (this.last_frame === time) {
-      return
-    }
-    let dt = (time - this.last_frame) * 0.000001
-    this.game_time += dt
-    this.last_frame = time
-
-    // process inputs
+  leap (ms, hands, gestures) {
     hands.forEach(hand => {
       if (hand.valid && hand.confidence > 0.2) {
         let entity = this.entities[hand.type]
-        entity.control(hand, gestures)
+        entity.leap(hand, gestures)
       }
     })
+  }
+
+  loop (ms) {
+    if (!this.game_time && ms > 0) {
+      this.game_time = ms / 1000
+    }
+    let dt = ms / 1000 - this.game_time
+    while (dt > this.seconds_per_frame) {
+      this.game_time += this.seconds_per_frame
+      dt -= this.seconds_per_frame
+      this.update(this.seconds_per_frame)
+    }
+    requestAnimationFrame(this.loop.bind(this))
+  }
+
+  update (dt) {
+    // scan gamepads and update entities
+
+    // update entities
     for (var id in this.entities) {
       this.entities[id].update(dt)
     }
 
     // use inputs to drive actions
-    this.actions(dt)
+    // this.actions(dt)
 
     // use actions to drive CAMERA
+    /*
     this.stars.rotation += this.data.camera.tilt * dt * 0.003
     this.planet.rotation += this.data.camera.tilt * dt * 0.003
     this.planet.scale.x += this.data.camera.zoom * dt * 0.001
     this.planet.scale.y += this.data.camera.zoom * dt * 0.001
     this.planet.position.x += this.data.camera.pan[0] * dt
     this.planet.position.y += this.data.camera.pan[1] * dt
+    */
 
     // and LIGHTS
     // this.socket.send('colour', this.data.lights.colour)
@@ -138,6 +151,7 @@ class Room {
 
     // and MUSIC
     // this.socket.send('volume', this.data.music.volume)
+    /*
     if (this.track !== this.data.music.track) {
       if (this.track) {
         this.music[this.track].stop()
@@ -148,14 +162,31 @@ class Room {
     if (this.track) {
       this.music[this.track].volume(this.data.music.volume * 0.001)
     }
+    */
 
     // and VISUALS
+    /*
     this.entities['left'].trail = false
     this.entities['right'].trail = false
     for (var effect of this.data.visual.effect) {
       this.entities['left'].trail = (effect === 'trails')
       this.entities['right'].trail = (effect === 'trails')
     }
+    */
+
+    if (this.data.debug) {
+      this.debug(dt)
+    }
+  }
+
+  debug (dt) {
+    ['left', 'right'].forEach(id => {
+      this.data.hands[id].position = this.entities[id].position
+      this.data.hands[id].rotation = this.entities[id].rotation
+      this.data.hands[id].pinch = this.entities[id].pinch
+      this.data.hands[id].grab = this.entities[id].grab
+      this.data.hands[id].gesture = this.entities[id].gesture
+    })
   }
 
   // this is where we hook inputs to actions
@@ -240,7 +271,7 @@ class Room {
   }
 
   spawnHand (id, type) {
-    this.entities[id] = new Hand(this.textures, this.data.hands[type], type === 'left')
+    this.entities[id] = new Hand(this.textures, type === 'left')
     this.entities[id].add(this.world)
     return this.entities[id]
   }

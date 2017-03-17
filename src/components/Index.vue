@@ -176,8 +176,9 @@
 </template>
 
 <script>
-  import Room from 'room.js'
   import { Loading } from 'quasar'
+  import Vue from 'vue'
+  import Room from 'room.js'
 
   let room = null
 
@@ -185,7 +186,6 @@
     data () {
       return {
         debug: true,
-        bogus: 0,
         hands: {
           left: {
             position: [-100, 200, 100],
@@ -276,17 +276,26 @@
         }
       }
     },
+    watch: {
+      debug: function (value) {
+        this.size()
+      }
+    },
     methods: {
       size () {
-        room.size()
+        if (room) {
+          Vue.nextTick(() => {
+            room.size()
+          })
+        }
       }
     },
     mounted () {
       Loading.show()
-      room = new Room('viewport', this.$data)
+      room = new Room('viewport')
       room.load(() => {
         Loading.hide()
-        room.init()
+        room.init(this.$data)
         window.addEventListener('resize', this.size)
       })
     },
