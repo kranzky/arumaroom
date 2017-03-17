@@ -24,6 +24,7 @@ class Jockey {
     } else if (this.volume > 1000) {
       this.volume = 1000
     }
+    this.socket.send('volume', this.volume / 1000)
   }
 }
 

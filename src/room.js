@@ -9,12 +9,13 @@ import Hand from 'entities/hand.js'
 import Camera from 'entities/camera.js'
 import Jockey from 'entities/jockey.js'
 
-// import Socket from './socket'
+import Socket from './socket'
 
 const WIDTH = 1200
 const HEIGHT = 675
 const RATIO = WIDTH / HEIGHT
 const FPS = 50
+const URL = null // 'https://leap.dev:3001'
 
 const MUSIC = [
   'bensound-dubstep',
@@ -71,8 +72,7 @@ class Room {
       antialias: true
     })
     this.world = new PIXI.Container()
-//  this.socket = new Socket()
-    this.socket = null
+    this.socket = new Socket(URL, this.data.debug)
     this.engine.stage.addChild(this.world)
     this.size()
     this.stars = new PIXI.Sprite(this.textures['stars'])
@@ -131,6 +131,8 @@ class Room {
   update (dt) {
     // scan gamepads and update entities
 
+    this.socket.update(dt)
+
     // update entities
     for (var id in this.entities) {
       this.entities[id].update(dt)
@@ -149,34 +151,11 @@ class Room {
     this.planet.position.y = this.camera.position[1]
 
     // LIGHTS
-    // this.socket.send('colour', this.data.lights.colour)
-    // this.socket.send('pattern', this.data.lights.pattern)
 
     // MUSIC
     this.jockey.update(dt)
-    // this.socket.send('volume', this.data.music.volume)
-    /*
-    if (this.track !== this.data.music.track) {
-      if (this.track) {
-        this.music[this.track].stop()
-      }
-      this.track = this.data.music.track
-      this.music[this.track].play()
-    }
-    if (this.track) {
-      this.music[this.track].volume(this.data.music.volume * 0.001)
-    }
-    */
 
     // VISUALS
-    /*
-    this.entities['left'].trail = false
-    this.entities['right'].trail = false
-    for (var effect of this.data.visual.effect) {
-      this.entities['left'].trail = (effect === 'trails')
-      this.entities['right'].trail = (effect === 'trails')
-    }
-    */
 
     if (this.data.debug) {
       this.debug(dt)
@@ -262,18 +241,6 @@ class Room {
       this.values.volume = null
       this.values.height = null
     }
-
-    // pinch with left hand and tap with right hand to toggle particle trails
-    /*
-    if (left.gesture === 'circle' && left.pose === 'pinch') {
-      let index = this.data.visual.effect.indexOf('trails')
-      if (index < 0) {
-        this.data.visual.effect.push('trails')
-      } else {
-        this.data.visual.effect.splice(index, 1)
-      }
-    }
-    */
   }
 
   debug (dt) {
