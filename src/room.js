@@ -7,6 +7,7 @@ import { Howl } from 'howler'
 
 import Hand from 'entities/hand.js'
 import Camera from 'entities/camera.js'
+import Jockey from 'entities/jockey.js'
 
 // import Socket from './socket'
 
@@ -71,6 +72,7 @@ class Room {
     })
     this.world = new PIXI.Container()
 //  this.socket = new Socket()
+    this.socket = null
     this.engine.stage.addChild(this.world)
     this.size()
     this.stars = new PIXI.Sprite(this.textures['stars'])
@@ -86,7 +88,8 @@ class Room {
     this.track = null
     this.spawnHand('left', 'left')
     this.spawnHand('right', 'right')
-    this.camera = new Camera()
+    this.camera = new Camera(this.socket)
+    this.jockey = new Jockey(this.music, this.socket)
     Leap.loop({ background: true }, (frame) => this.leap(frame.timestamp, frame.hands, frame.gestures))
     this.loop()
   }
@@ -150,6 +153,7 @@ class Room {
     // this.socket.send('pattern', this.data.lights.pattern)
 
     // MUSIC
+    this.jockey.update(dt)
     // this.socket.send('volume', this.data.music.volume)
     /*
     if (this.track !== this.data.music.track) {
@@ -198,62 +202,68 @@ class Room {
     // pinch with both hands and move to zoom in and out
     if (left.pose === 'pinch' && right.pose === 'pinch') {
       let distance = (left.position[0] - right.position[0])
-      if (this.values['zoom']) {
-        this.camera.zoom = this.values['zoom'] - distance
+      if (this.values.zoom) {
+        this.camera.zoom = this.values.zoom - distance
         this.camera.zoom /= 100
         this.camera.zoom *= Math.abs(this.camera.zoom)
         this.camera.zoom *= 100
       } else {
-        this.values['zoom'] = distance
+        this.values.zoom = distance
       }
     } else {
-      this.values['zoom'] = null
+      this.values.zoom = null
     }
 
     // grab with both hands to pan around
     if (left.pose === 'grab' && right.pose === 'grab') {
       let position = 0.5 * (left.position[0] + right.position[0])
-      if (this.values['pan']) {
-        this.camera.pan = this.values['pan'] - position
+      if (this.values.pan) {
+        this.camera.pan = this.values.pan - position
         this.camera.pan /= 100
         this.camera.pan *= Math.abs(this.camera.pan)
         this.camera.pan *= 100
       } else {
-        this.values['pan'] = position
+        this.values.pan = position
       }
       position = 0.5 * (left.position[2] + right.position[2])
-      if (this.values['tilt']) {
-        this.camera.tilt = this.values['tilt'] - position
+      if (this.values.tilt) {
+        this.camera.tilt = this.values.tilt - position
         this.camera.tilt /= 100
         this.camera.tilt *= Math.abs(this.camera.tilt)
         this.camera.tilt *= 200
       } else {
-        this.values['tilt'] = position
+        this.values.tilt = position
       }
     } else {
-      this.values['pan'] = null
-      this.values['tilt'] = null
+      this.values.pan = null
+      this.values.tilt = null
     }
 
     // swipe with right hand to change track
-    /*
     if (right.gesture === 'swipe_left') {
-      let id = MUSIC.indexOf(this.data.music.track) - 1
-      if (id < 0) {
-        id = MUSIC.length - 1
-      }
-      this.data.music.track = MUSIC[id]
+      this.jockey.prevTrack()
     }
     if (right.gesture === 'swipe_right') {
-      let id = this.data.music.tracks.indexOf(this.data.music.track) + 1
-      if (id >= MUSIC.length) {
-        id = 0
-      }
-      this.data.music.track = MUSIC[id]
+      this.jockey.nextTrack()
     }
-    */
 
-    // pinch with left hand and draw a circle to toggle particle trails
+    // pinch with right hand to change music volume
+    if (right.pose === 'pinch' && !left.pose) {
+      let height = right.position[1]
+      if (this.values.height) {
+        let diff = height - this.values.height
+        diff *= 5
+        this.jockey.volume = this.values.volume + diff
+      } else {
+        this.values.volume = this.jockey.volume
+        this.values.height = height
+      }
+    } else {
+      this.values.volume = null
+      this.values.height = null
+    }
+
+    // pinch with left hand and tap with right hand to toggle particle trails
     /*
     if (left.gesture === 'circle' && left.pose === 'pinch') {
       let index = this.data.visual.effect.indexOf('trails')
@@ -261,30 +271,6 @@ class Room {
         this.data.visual.effect.push('trails')
       } else {
         this.data.visual.effect.splice(index, 1)
-      }
-    }
-    */
-
-    // grab with both hands to zoom in and out
-    /*
-    if (left.pose === 'grab' && right.pose === 'grab') {
-      this.data.camera.zoom = 500 - (left.data.position[1] + right.data.position[1] - 100) * 2.5
-      if (this.data.camera.zoom > 500) {
-        this.data.camera.zoom = 500
-      } else if (this.data.camera.zoom < -500) {
-        this.data.camera.zoom = -500
-      }
-    }
-    */
-
-    // pinch with right hand to change music volume
-    /*
-    if (right.pose === 'pinch') {
-      this.data.music.volume = (right.data.position[1] - 50) * 2.5
-      if (this.data.music.volume > 1000) {
-        this.data.music.volume = 1000
-      } else if (this.data.music.volume < 0) {
-        this.data.music.volume = 0
       }
     }
     */
@@ -302,6 +288,11 @@ class Room {
     this.data.camera.tilt = this.camera.tilt
     this.data.camera.spin = this.camera.spin
     this.data.camera.zoom = this.camera.zoom
+    this.data.music.track = this.jockey.track
+    this.data.music.volume = this.jockey.volume
+    this.data.music.filter = this.jockey.filter
+    this.data.music.frequency = this.jockey.frequency
+    this.data.music.quality = this.jockey.quality
   }
 
   fini () {
