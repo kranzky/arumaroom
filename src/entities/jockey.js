@@ -4,12 +4,28 @@ const MUSIC = [
   'bensound-dubstep',
   'bensound-moose'
 ]
+const FILTERS = [
+  'lowpass',
+  'highpass',
+  'bandpass',
+  'lowshelf',
+  'highshelf',
+  'peaking',
+  'notch',
+  'allpass'
+]
 const FADE = 2000
 
 class Jockey {
   constructor (socket) {
     this.music = {}
     this.tracks = MUSIC.map((name) => {
+      return {
+        label: name,
+        value: name
+      }
+    })
+    this.filters = FILTERS.map((name) => {
       return {
         label: name,
         value: name
@@ -74,11 +90,41 @@ class Jockey {
     this.track = name
   }
 
+  nextFilter () {
+    let index = FILTERS.indexOf(this.filter) + 1
+    if (index >= FILTERS.length) {
+      index = 0
+    }
+    this.setFilter(FILTERS[index])
+  }
+
+  prevFilter () {
+    let index = FILTERS.indexOf(this.filter) - 1
+    if (index < 0) {
+      index = FILTERS.length - 1
+    }
+    this.setFilter(FILTERS[index])
+  }
+
+  setFilter (name) {
+    this.filter = name
+  }
+
   update (dt) {
     if (this.volume < 0) {
       this.volume = 0
     } else if (this.volume > 1) {
       this.volume = 1
+    }
+    if (this.frequency < 20) {
+      this.frequency = 20
+    } else if (this.frequency > 20000) {
+      this.frequency = 20000
+    }
+    if (this.quality < 0) {
+      this.quality = 0
+    } else if (this.quality > 100) {
+      this.quality = 100
     }
     Howler.volume(this.volume)
     this.socket.send('volume', this.volume)

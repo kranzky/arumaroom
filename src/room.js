@@ -7,6 +7,7 @@ import Leap from 'leapjs'
 import Hand from 'entities/hand.js'
 import Camera from 'entities/camera.js'
 import Jockey from 'entities/jockey.js'
+import Lights from 'entities/lights.js'
 
 import Socket from './socket'
 
@@ -44,6 +45,7 @@ class Room {
     this.socket = new Socket(URL, this.data.debug)
     this.camera = new Camera(this.socket)
     this.jockey = new Jockey(this.socket)
+    this.lights = new Lights(this.socket)
     this.engine = new PIXI.Application(WIDTH, HEIGHT, {
       view: this.canvas,
       antialias: true
@@ -80,7 +82,11 @@ class Room {
     this.world.addChild(this.planet)
     this.spawnHand('left', 'left')
     this.spawnHand('right', 'right')
-    Leap.loop({ background: true }, (frame) => this.leap(frame.timestamp, frame.hands, frame.gestures))
+    Leap.loop({
+      background: true,
+      frameEventName: 'deviceFrame',
+      loopWhileDisconnected: false
+    }, (frame) => this.leap(frame))
     this.loop()
   }
 
@@ -96,11 +102,11 @@ class Room {
     }
   }
 
-  leap (ms, hands, gestures) {
-    hands.forEach(hand => {
+  leap (frame) {
+    frame.hands.forEach(hand => {
       if (hand.valid && hand.confidence > 0.2) {
         let entity = this.entities[hand.type]
-        entity.leap(hand, gestures)
+        entity.leap(hand, frame.gestures)
       }
     })
   }
@@ -119,20 +125,18 @@ class Room {
   }
 
   update (dt) {
-    // scan gamepads and update entities
-
     this.socket.update(dt)
 
-    // update entities
     for (var id in this.entities) {
       this.entities[id].update(dt)
     }
 
-    // use inputs to drive actions
-    this.actions(dt)
+    this.control(dt)
 
-    // CAMERA
     this.camera.update(dt)
+    this.lights.update(dt)
+    this.jockey.update(dt)
+
     this.stars.rotation = this.camera.angle
     this.planet.rotation = this.camera.angle
     this.planet.scale.x = this.camera.scale
@@ -140,20 +144,12 @@ class Room {
     this.planet.position.x = this.camera.position[0]
     this.planet.position.y = this.camera.position[1]
 
-    // LIGHTS
-
-    // MUSIC
-    this.jockey.update(dt)
-
-    // VISUALS
-
     if (this.data.debug) {
       this.debug(dt)
     }
   }
 
-  // this is where we hook inputs to actions
-  actions (dt) {
+  control (dt) {
     let left = this.entities.left
     let right = this.entities.right
 
@@ -168,7 +164,7 @@ class Room {
       }
     }
 
-    // pinch with both hands and move to zoom in and out
+    // pinch with both hands to zoom in and out
     if (left.pose === 'pinch' && right.pose === 'pinch') {
       let distance = (left.position[0] - right.position[0])
       if (this.values.zoom) {
@@ -205,8 +201,9 @@ class Room {
       this.values.tilt = null
     }
 
-    // grab with left hand and swipe with right hand to change track
-    if (left.pose === 'grab') {
+    // grab with left hand and swipe with right hand to change track, or tap
+    // with right hand to change filter
+    if (left.pose === 'grab' && !right.pose) {
       if (right.gesture === 'swipe_left') {
         this.jockey.prevTrack()
         right.gesture = null
@@ -215,11 +212,18 @@ class Room {
         this.jockey.nextTrack()
         right.gesture = null
       }
+      if (right.gesture === 'tap') {
+        this.jockey.nextFilter()
+        right.gesture = null
+      }
     }
 
-    // pinch with right hand to change music volume
-    if (right.pose === 'pinch' && !left.pose) {
+    // grab with left hand and pinch with right hand to change volume,
+    // frequency and quality
+    if (left.pose === 'grab' && right.pose === 'pinch') {
       let height = right.position[1]
+      let width = right.position[0]
+      let depth = right.position[2]
       if (this.values.height) {
         let diff = height - this.values.height
         diff /= 100
@@ -228,9 +232,46 @@ class Room {
         this.values.volume = this.jockey.volume
         this.values.height = height
       }
+      if (this.values.width) {
+        let diff = width - this.values.width
+        diff *= 100
+        this.jockey.frequency = this.values.frequency + diff
+      } else {
+        this.values.frequency = this.jockey.frequency
+        this.values.width = width
+      }
+      if (this.values.depth) {
+        let diff = depth - this.values.depth
+        diff /= 10
+        this.jockey.quality = this.values.quality + diff
+      } else {
+        this.values.quality = this.jockey.quality
+        this.values.depth = depth
+      }
     } else {
       this.values.volume = null
+      this.values.frequency = null
+      this.values.quality = null
       this.values.height = null
+      this.values.width = null
+      this.values.depth = null
+    }
+
+    // grab with right hand and swipe with left hand to change colour, or tap
+    // with left hand to change pattern
+    if (right.pose === 'grab' && !left.pose) {
+      if (left.gesture === 'swipe_left') {
+        this.lights.prevColour()
+        left.gesture = null
+      }
+      if (left.gesture === 'swipe_right') {
+        this.lights.nextColour()
+        left.gesture = null
+      }
+      if (left.gesture === 'tap') {
+        this.lights.nextPattern()
+        left.gesture = null
+      }
     }
   }
 
@@ -249,9 +290,14 @@ class Room {
     this.data.music.tracks = this.jockey.tracks
     this.data.music.track = this.jockey.track
     this.data.music.volume = this.jockey.volume * 1000
+    this.data.music.filters = this.jockey.filters
     this.data.music.filter = this.jockey.filter
     this.data.music.frequency = this.jockey.frequency
     this.data.music.quality = this.jockey.quality
+    this.data.lights.patterns = this.lights.patterns
+    this.data.lights.pattern = this.lights.pattern
+    this.data.lights.colours = this.lights.colours
+    this.data.lights.colour = this.lights.colour
   }
 
   fini () {

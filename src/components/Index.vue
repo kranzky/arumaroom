@@ -81,6 +81,56 @@
       </div>
       <div class="card">
         <div class="list item-delimiter">
+          <q-collapsible opened icon="music_note" label="Music">
+            <div class="list">
+              <div class="item two-lines">
+                <i class="item-primary">queue_music</i>
+                <div class="item-content">
+                  <q-select type="list" v-model="music.track" @input="track" :options="music.tracks" placeholder="Track"></q-select>
+                </div>
+              </div>
+              <div class="item two-lines">
+                <i class="item-primary">volume_up</i>
+                <div class="item-content">
+                  <q-range v-model="music.volume" @input="volume" :min="0" :max="1000"></q-range>
+                </div>
+              </div>
+              <div class="item two-lines">
+                <i class="item-primary">equalizer</i>
+                <div class="item-content">
+                  <q-select type="list" v-model="music.filter" @input="filter" :options="music.filters" placeholder="Filter"></q-select>
+                </div>
+              </div>
+              <div class="item two-lines">
+                <i class="item-primary">whatshot</i>
+                <div class="item-content">
+                  <q-range v-model="music.frequency" @input="frequency" :min="20" :max="20000"></q-range>
+                </div>
+              </div>
+              <div class="item two-lines">
+                <i class="item-primary">star</i>
+                <div class="item-content">
+                  <q-range v-model="music.quality" @input="quality" :min="0" :max="100"></q-range>
+                </div>
+              </div>
+            </div>
+          </q-collapsible>
+          <q-collapsible opened icon="wb_incandescent" label="Lights">
+            <div class="list">
+              <div class="item two-lines">
+                <i class="item-primary">color_lens</i>
+                <div class="item-content">
+                  <q-select type="list" v-model="lights.colour" @input="colour" :options="lights.colours" placeholder="Colour"></q-select>
+                </div>
+              </div>
+              <div class="item two-lines">
+                <i class="item-primary">flare</i>
+                <div class="item-content">
+                  <q-select type="list" v-model="lights.pattern" @input="pattern" :options="lights.patterns" placeholder="Pattern"></q-select>
+                </div>
+              </div>
+            </div>
+          </q-collapsible>
           <q-collapsible opened icon="camera_alt" label="Camera">
             <div class="list">
               <div class="item two-lines">
@@ -105,66 +155,6 @@
                 <i class="item-primary">zoom_out_map</i>
                 <div class="item-content">
                   <q-range v-model="camera.zoom" @input="zoom" :min="-500" :max="500"></q-range>
-                </div>
-              </div>
-            </div>
-          </q-collapsible>
-          <q-collapsible icon="wb_incandescent" label="Lights">
-            <div class="list">
-              <div class="item two-lines">
-                <i class="item-primary">color_lens</i>
-                <div class="item-content">
-                  <q-select type="list" v-model="lights.colour" :options="lights.colours" placeholder="Colour"></q-select>
-                </div>
-              </div>
-              <div class="item two-lines">
-                <i class="item-primary">flare</i>
-                <div class="item-content">
-                  <q-select type="list" v-model="lights.pattern" :options="lights.patterns" placeholder="Pattern"></q-select>
-                </div>
-              </div>
-            </div>
-          </q-collapsible>
-          <q-collapsible icon="music_note" label="Music">
-            <div class="list">
-              <div class="item two-lines">
-                <i class="item-primary">queue_music</i>
-                <div class="item-content">
-                  <q-select type="list" v-model="music.track" @input="track" :options="music.tracks" placeholder="Track"></q-select>
-                </div>
-              </div>
-              <div class="item two-lines">
-                <i class="item-primary">volume_up</i>
-                <div class="item-content">
-                  <q-range v-model="music.volume" @input="volume" :min="0" :max="1000"></q-range>
-                </div>
-              </div>
-              <div class="item two-lines">
-                <i class="item-primary">equalizer</i>
-                <div class="item-content">
-                  <q-select type="list" v-model="music.filter" :options="music.filters" placeholder="Filter"></q-select>
-                </div>
-              </div>
-              <div class="item two-lines">
-                <i class="item-primary">whatshot</i>
-                <div class="item-content">
-                  <q-range v-model="music.frequency" :min="20" :max="20000"></q-range>
-                </div>
-              </div>
-              <div class="item two-lines">
-                <i class="item-primary">star</i>
-                <div class="item-content">
-                  <q-range v-model="music.quality" :min="0" :max="100"></q-range>
-                </div>
-              </div>
-            </div>
-          </q-collapsible>
-          <q-collapsible icon="movie_filter" label="Visual">
-            <div class="list">
-              <div class="item two-lines">
-                <i class="item-primary">looks</i>
-                <div class="item-content">
-                  <q-select type="checkbox" v-model="visual.effect" :options="visual.effects" placeholder="Effect"></q-select>
                 </div>
               </div>
             </div>
@@ -222,10 +212,6 @@
           filter: null,
           frequency: 0,
           quality: 0
-        },
-        visual: {
-          effects: [],
-          effect: []
         }
       }
     },
@@ -247,7 +233,12 @@
       spin (value) { if (room) { room.camera.spin = value / 500 } },
       zoom (value) { if (room) { room.camera.zoom = value / 500 } },
       volume (value) { if (room) { room.jockey.volume = value / 1000 } },
-      track (value) { if (room) { room.jockey.setTrack(value) } }
+      track (value) { if (room) { room.jockey.setTrack(value) } },
+      filter (value) { if (room) { room.jockey.setFilter(value) } },
+      frequency (value) { if (room) { room.jockey.frequency = value } },
+      quality (value) { if (room) { room.jockey.quality = value } },
+      colour (value) { if (room) { room.lights.setColour(value) } },
+      pattern (value) { if (room) { room.lights.setPattern(value) } }
     },
     mounted () {
       Loading.show()

@@ -21,7 +21,7 @@ class Hand {
     this.pose_cooldown = 0
     this.gesture = null
     this.gesture_cooldown = 0
-    this.trail = false
+    this.trail = true
     this.sparks = new Sparks(textures['particle'])
     this.flip = flip
     if (flip) {
