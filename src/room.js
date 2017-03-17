@@ -3,7 +3,6 @@ import 'pixi.js'
 import 'pixi-particles'
 
 import Leap from 'leapjs'
-import { Howl } from 'howler'
 
 import Hand from 'entities/hand.js'
 import Camera from 'entities/camera.js'
@@ -16,11 +15,6 @@ const HEIGHT = 675
 const RATIO = WIDTH / HEIGHT
 const FPS = 50
 const URL = null // 'https://leap.dev:3001'
-
-const MUSIC = [
-  'bensound-dubstep',
-  'bensound-moose'
-]
 
 const TEXTURES = [
   'open',
@@ -40,20 +34,28 @@ class Room {
     this.seconds_per_frame = 1.0 / FPS
     this.canvas = document.getElementById(elementId)
     this.textures = {}
-    this.music = {}
     this.entities = {}
     this.values = {}
     this.data = null
   }
 
+  init (data) {
+    this.data = data
+    this.socket = new Socket(URL, this.data.debug)
+    this.camera = new Camera(this.socket)
+    this.jockey = new Jockey(this.socket)
+    this.engine = new PIXI.Application(WIDTH, HEIGHT, {
+      view: this.canvas,
+      antialias: true
+    })
+    this.world = new PIXI.Container()
+    this.engine.stage.addChild(this.world)
+    this.size()
+  }
+
   load (callback) {
-    for (var name of MUSIC) {
-      this.music[name] = new Howl({
-        src: [require(`assets/${name}.webm`), require(`assets/${name}.mp3`)],
-        loop: true
-      })
-    }
-    for (name of TEXTURES) {
+    this.jockey.load()
+    for (var name of TEXTURES) {
       PIXI.loader.add(name, require(`assets/${name}.png`))
     }
     PIXI.loader.once('complete', () => {
@@ -65,16 +67,7 @@ class Room {
     PIXI.loader.load()
   }
 
-  init (data) {
-    this.data = data
-    this.engine = new PIXI.Application(WIDTH, HEIGHT, {
-      view: this.canvas,
-      antialias: true
-    })
-    this.world = new PIXI.Container()
-    this.socket = new Socket(URL, this.data.debug)
-    this.engine.stage.addChild(this.world)
-    this.size()
+  run () {
     this.stars = new PIXI.Sprite(this.textures['stars'])
     this.stars.anchor.x = 0.5
     this.stars.anchor.y = 0.5
@@ -85,11 +78,8 @@ class Room {
     this.planet.anchor.x = 0.5
     this.planet.anchor.y = 0.5
     this.world.addChild(this.planet)
-    this.track = null
     this.spawnHand('left', 'left')
     this.spawnHand('right', 'right')
-    this.camera = new Camera(this.socket)
-    this.jockey = new Jockey(this.music, this.socket)
     Leap.loop({ background: true }, (frame) => this.leap(frame.timestamp, frame.hands, frame.gestures))
     this.loop()
   }
@@ -172,8 +162,8 @@ class Room {
       let spin = (left.rotation[0] - right.rotation[0])
       spin *= Math.abs(spin)
       spin *= Math.abs(spin)
-      spin *= 30
-      if (Math.abs(spin) > 1) {
+      spin /= 30
+      if (Math.abs(spin) > 0.0003) {
         this.camera.spin = spin
       }
     }
@@ -185,7 +175,6 @@ class Room {
         this.camera.zoom = this.values.zoom - distance
         this.camera.zoom /= 100
         this.camera.zoom *= Math.abs(this.camera.zoom)
-        this.camera.zoom *= 100
       } else {
         this.values.zoom = distance
       }
@@ -197,19 +186,17 @@ class Room {
     if (left.pose === 'grab' && right.pose === 'grab') {
       let position = 0.5 * (left.position[0] + right.position[0])
       if (this.values.pan) {
-        this.camera.pan = this.values.pan - position
+        this.camera.pan = position - this.values.pan
         this.camera.pan /= 100
         this.camera.pan *= Math.abs(this.camera.pan)
-        this.camera.pan *= 100
       } else {
         this.values.pan = position
       }
       position = 0.5 * (left.position[2] + right.position[2])
       if (this.values.tilt) {
-        this.camera.tilt = this.values.tilt - position
+        this.camera.tilt = position - this.values.tilt
         this.camera.tilt /= 100
         this.camera.tilt *= Math.abs(this.camera.tilt)
-        this.camera.tilt *= 200
       } else {
         this.values.tilt = position
       }
@@ -218,12 +205,16 @@ class Room {
       this.values.tilt = null
     }
 
-    // swipe with right hand to change track
-    if (right.gesture === 'swipe_left') {
-      this.jockey.prevTrack()
-    }
-    if (right.gesture === 'swipe_right') {
-      this.jockey.nextTrack()
+    // grab with left hand and swipe with right hand to change track
+    if (left.pose === 'grab') {
+      if (right.gesture === 'swipe_left') {
+        this.jockey.prevTrack()
+        right.gesture = null
+      }
+      if (right.gesture === 'swipe_right') {
+        this.jockey.nextTrack()
+        right.gesture = null
+      }
     }
 
     // pinch with right hand to change music volume
@@ -231,7 +222,7 @@ class Room {
       let height = right.position[1]
       if (this.values.height) {
         let diff = height - this.values.height
-        diff *= 5
+        diff /= 100
         this.jockey.volume = this.values.volume + diff
       } else {
         this.values.volume = this.jockey.volume
@@ -251,12 +242,13 @@ class Room {
       this.data.hands[id].grab = this.entities[id].grab
       this.data.hands[id].gesture = this.entities[id].gesture
     })
-    this.data.camera.pan = this.camera.pan
-    this.data.camera.tilt = this.camera.tilt
-    this.data.camera.spin = this.camera.spin
-    this.data.camera.zoom = this.camera.zoom
+    this.data.camera.pan = this.camera.pan * 500
+    this.data.camera.tilt = this.camera.tilt * 500
+    this.data.camera.spin = this.camera.spin * 500
+    this.data.camera.zoom = this.camera.zoom * 500
+    this.data.music.tracks = this.jockey.tracks
     this.data.music.track = this.jockey.track
-    this.data.music.volume = this.jockey.volume
+    this.data.music.volume = this.jockey.volume * 1000
     this.data.music.filter = this.jockey.filter
     this.data.music.frequency = this.jockey.frequency
     this.data.music.quality = this.jockey.quality
@@ -271,9 +263,7 @@ class Room {
       this.textures[name].destroy(true)
       delete this.textures[name]
     }
-    for (name of MUSIC) {
-      this.music[name].unload()
-    }
+    this.jockey.fini()
     PIXI.loader.reset()
     this.world.destroy()
     this.engine.destroy()

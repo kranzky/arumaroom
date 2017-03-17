@@ -11,45 +11,45 @@ class Camera {
   }
 
   update (dt) {
-    if (this.spin > 500) {
-      this.spin = 500
-    } else if (this.spin < -500) {
-      this.spin = -500
+    if (this.spin > 1) {
+      this.spin = 1
+    } else if (this.spin < -1) {
+      this.spin = -1
     }
-    this.angle += this.spin * 0.01 * dt
+    this.angle += this.spin * 10 * dt
     this.spin -= this.spin * dt
-    if (this.zoom > 500) {
-      this.zoom = 500
-    } else if (this.zoom < -500) {
-      this.zoom = -500
+    if (this.zoom > 1) {
+      this.zoom = 1
+    } else if (this.zoom < -1) {
+      this.zoom = -1
     }
-    this.scale += this.zoom * 0.01 * dt
+    this.scale += this.zoom * dt
     this.zoom -= this.zoom * dt
     if (this.scale > 10) {
       this.scale = 10
     } else if (this.scale < 0.1) {
       this.scale = 0.1
     }
-    if (this.pan > 500) {
-      this.pan = 500
-    } else if (this.pan < -500) {
-      this.pan = -500
+    if (this.pan > 1) {
+      this.pan = 1
+    } else if (this.pan < -1) {
+      this.pan = -1
     }
-    this.position[0] += this.pan * dt
-    this.pan -= this.pan * 0.5 * dt
+    this.position[0] += this.pan * 500 * dt
+    this.pan -= this.pan * dt
     let width = 600 + 350 * this.scale
     if (this.position[0] > width) {
       this.position[0] = -width
     } else if (this.position[0] < -width) {
       this.position[0] = width
     }
-    if (this.tilt > 500) {
-      this.tilt = 500
-    } else if (this.tilt < -500) {
-      this.tilt = -500
+    if (this.tilt > 1) {
+      this.tilt = 1
+    } else if (this.tilt < -1) {
+      this.tilt = -1
     }
-    this.position[1] += this.tilt * dt
-    this.tilt -= this.tilt * 0.5 * dt
+    this.position[1] += this.tilt * 500 * dt
+    this.tilt -= this.tilt * dt
     let height = 1000 + 350 * this.scale
     if (this.position[1] > height) {
       this.position[1] = -height

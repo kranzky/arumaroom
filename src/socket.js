@@ -1,5 +1,7 @@
 import * as io from 'socket.io-client'
 
+const RATE = 2
+
 class Socket {
   constructor (url, debug) {
     this.debug = debug
@@ -24,7 +26,7 @@ class Socket {
   update (dt) {
     this.cooldown -= dt
     if (this.cooldown < 0) {
-      this.cooldown = 0.5
+      this.cooldown = 1 / RATE
       for (var event in this.payload) {
         this.process(event, this.payload[event])
       }

@@ -130,13 +130,13 @@
               <div class="item two-lines">
                 <i class="item-primary">queue_music</i>
                 <div class="item-content">
-                  <q-select type="list" v-model="music.track" :options="music.tracks" placeholder="Track"></q-select>
+                  <q-select type="list" v-model="music.track" @input="track" :options="music.tracks" placeholder="Track"></q-select>
                 </div>
               </div>
               <div class="item two-lines">
                 <i class="item-primary">volume_up</i>
                 <div class="item-content">
-                  <q-range v-model="music.volume" :min="0" :max="1000"></q-range>
+                  <q-range v-model="music.volume" @input="volume" :min="0" :max="1000"></q-range>
                 </div>
               </div>
               <div class="item two-lines">
@@ -188,14 +188,14 @@
         debug: true,
         hands: {
           left: {
-            position: [-100, 200, 100],
+            position: [0, 0, 0],
             rotation: [0, 0, 0],
             pinch: 0,
             grab: 0,
             gesture: null
           },
           right: {
-            position: [100, 200, 100],
+            position: [0, 0, 0],
             rotation: [0, 0, 0],
             pinch: 0,
             grab: 0,
@@ -209,70 +209,22 @@
           spin: 0
         },
         lights: {
-          colours: [{
-            label: 'Red',
-            value: 'red'
-          }, {
-            label: 'Green',
-            value: 'green'
-          }, {
-            label: 'Blue',
-            value: 'blue'
-          }],
+          colours: [],
           colour: null,
-          patterns: [{
-            label: 'Pulse',
-            value: 'pulse'
-          }, {
-            label: 'Swipe',
-            value: 'swipe'
-          }],
+          patterns: [],
           pattern: null
         },
         music: {
-          tracks: [{
-            label: 'Dubstep',
-            value: 'bensound-dubstep'
-          }, {
-            label: 'Moose',
-            value: 'bensound-moose'
-          }],
+          tracks: [],
           track: null,
-          volume: 500,
-          filters: [{
-            label: 'Lowpass',
-            value: 'lowpass'
-          }, {
-            label: 'Highpass',
-            value: 'highpass'
-          }, {
-            label: 'Bandpass',
-            value: 'bandpass'
-          }, {
-            label: 'Lowshelf',
-            value: 'lowshelf'
-          }, {
-            label: 'Highshelf',
-            value: 'highshelf'
-          }, {
-            label: 'Peaking',
-            value: 'peaking'
-          }, {
-            label: 'Notch',
-            value: 'notch'
-          }, {
-            label: 'Allpass',
-            value: 'allpass'
-          }],
+          volume: 0,
+          filters: [],
           filter: null,
-          frequency: 10000,
+          frequency: 0,
           quality: 0
         },
         visual: {
-          effects: [{
-            label: 'Hand Trails',
-            value: 'trails'
-          }],
+          effects: [],
           effect: []
         }
       }
@@ -290,17 +242,20 @@
           })
         }
       },
-      pan (value) { if (room) { room.camera.pan = value } },
-      tilt (value) { if (room) { room.camera.tilt = value } },
-      spin (value) { if (room) { room.camera.spin = value } },
-      zoom (value) { if (room) { room.camera.zoom = value } }
+      pan (value) { if (room) { room.camera.pan = value / 500 } },
+      tilt (value) { if (room) { room.camera.tilt = value / 500 } },
+      spin (value) { if (room) { room.camera.spin = value / 500 } },
+      zoom (value) { if (room) { room.camera.zoom = value / 500 } },
+      volume (value) { if (room) { room.jockey.volume = value / 1000 } },
+      track (value) { if (room) { room.jockey.setTrack(value) } }
     },
     mounted () {
       Loading.show()
       room = new Room('viewport')
+      room.init(this.$data)
       room.load(() => {
         Loading.hide()
-        room.init(this.$data)
+        room.run()
         window.addEventListener('resize', this.size)
       })
     },
