@@ -6,6 +6,7 @@ import Leap from 'leapjs'
 import { Howl } from 'howler'
 
 import Hand from 'entities/hand.js'
+import Camera from 'entities/camera.js'
 
 // import Socket from './socket'
 
@@ -39,6 +40,7 @@ class Room {
     this.textures = {}
     this.music = {}
     this.entities = {}
+    this.values = {}
     this.data = null
   }
 
@@ -80,12 +82,11 @@ class Room {
     this.planet = new PIXI.Sprite(this.textures['planet'])
     this.planet.anchor.x = 0.5
     this.planet.anchor.y = 0.5
-    this.planet.scale.x = 0.1
-    this.planet.scale.y = 0.1
     this.world.addChild(this.planet)
     this.track = null
     this.spawnHand('left', 'left')
     this.spawnHand('right', 'right')
+    this.camera = new Camera()
     Leap.loop({ background: true }, (frame) => this.leap(frame.timestamp, frame.hands, frame.gestures))
     this.loop()
   }
@@ -133,23 +134,22 @@ class Room {
     }
 
     // use inputs to drive actions
-    // this.actions(dt)
+    this.actions(dt)
 
-    // use actions to drive CAMERA
-    /*
-    this.stars.rotation += this.data.camera.tilt * dt * 0.003
-    this.planet.rotation += this.data.camera.tilt * dt * 0.003
-    this.planet.scale.x += this.data.camera.zoom * dt * 0.001
-    this.planet.scale.y += this.data.camera.zoom * dt * 0.001
-    this.planet.position.x += this.data.camera.pan[0] * dt
-    this.planet.position.y += this.data.camera.pan[1] * dt
-    */
+    // CAMERA
+    this.camera.update(dt)
+    this.stars.rotation = this.camera.angle
+    this.planet.rotation = this.camera.angle
+    this.planet.scale.x = this.camera.scale
+    this.planet.scale.y = this.camera.scale
+    this.planet.position.x = this.camera.position[0]
+    this.planet.position.y = this.camera.position[1]
 
-    // and LIGHTS
+    // LIGHTS
     // this.socket.send('colour', this.data.lights.colour)
     // this.socket.send('pattern', this.data.lights.pattern)
 
-    // and MUSIC
+    // MUSIC
     // this.socket.send('volume', this.data.music.volume)
     /*
     if (this.track !== this.data.music.track) {
@@ -164,7 +164,7 @@ class Room {
     }
     */
 
-    // and VISUALS
+    // VISUALS
     /*
     this.entities['left'].trail = false
     this.entities['right'].trail = false
@@ -179,16 +179,6 @@ class Room {
     }
   }
 
-  debug (dt) {
-    ['left', 'right'].forEach(id => {
-      this.data.hands[id].position = this.entities[id].position
-      this.data.hands[id].rotation = this.entities[id].rotation
-      this.data.hands[id].pinch = this.entities[id].pinch
-      this.data.hands[id].grab = this.entities[id].grab
-      this.data.hands[id].gesture = this.entities[id].gesture
-    })
-  }
-
   // this is where we hook inputs to actions
   actions (dt) {
     let left = this.entities.left
@@ -196,16 +186,57 @@ class Room {
 
     // open hands and tilt in opposite directions to rotate camera
     if (!left.pose && !right.pose) {
-      this.data.camera.tilt = 200 * (left.data.rotation[0] - right.data.rotation[0])
-      this.data.camera.tilt = 200 * (left.data.rotation[0] - right.data.rotation[0])
-      if (this.data.camera.tilt > 500) {
-        this.data.camera.tilt = 500
-      } else if (this.data.camera.tilt < -500) {
-        this.data.camera.tilt = -500
+      let spin = (left.rotation[0] - right.rotation[0])
+      spin *= Math.abs(spin)
+      spin *= Math.abs(spin)
+      spin *= 30
+      if (Math.abs(spin) > 1) {
+        this.camera.spin = spin
       }
     }
 
+    // pinch with both hands and move to zoom in and out
+    if (left.pose === 'pinch' && right.pose === 'pinch') {
+      let distance = (left.position[0] - right.position[0])
+      if (this.values['zoom']) {
+        this.camera.zoom = this.values['zoom'] - distance
+        this.camera.zoom /= 100
+        this.camera.zoom *= Math.abs(this.camera.zoom)
+        this.camera.zoom *= 100
+      } else {
+        this.values['zoom'] = distance
+      }
+    } else {
+      this.values['zoom'] = null
+    }
+
+    // grab with both hands to pan around
+    if (left.pose === 'grab' && right.pose === 'grab') {
+      let position = 0.5 * (left.position[0] + right.position[0])
+      if (this.values['pan']) {
+        this.camera.pan = this.values['pan'] - position
+        this.camera.pan /= 100
+        this.camera.pan *= Math.abs(this.camera.pan)
+        this.camera.pan *= 100
+      } else {
+        this.values['pan'] = position
+      }
+      position = 0.5 * (left.position[2] + right.position[2])
+      if (this.values['tilt']) {
+        this.camera.tilt = this.values['tilt'] - position
+        this.camera.tilt /= 100
+        this.camera.tilt *= Math.abs(this.camera.tilt)
+        this.camera.tilt *= 200
+      } else {
+        this.values['tilt'] = position
+      }
+    } else {
+      this.values['pan'] = null
+      this.values['tilt'] = null
+    }
+
     // swipe with right hand to change track
+    /*
     if (right.gesture === 'swipe_left') {
       let id = MUSIC.indexOf(this.data.music.track) - 1
       if (id < 0) {
@@ -220,8 +251,10 @@ class Room {
       }
       this.data.music.track = MUSIC[id]
     }
+    */
 
     // pinch with left hand and draw a circle to toggle particle trails
+    /*
     if (left.gesture === 'circle' && left.pose === 'pinch') {
       let index = this.data.visual.effect.indexOf('trails')
       if (index < 0) {
@@ -230,8 +263,10 @@ class Room {
         this.data.visual.effect.splice(index, 1)
       }
     }
+    */
 
     // grab with both hands to zoom in and out
+    /*
     if (left.pose === 'grab' && right.pose === 'grab') {
       this.data.camera.zoom = 500 - (left.data.position[1] + right.data.position[1] - 100) * 2.5
       if (this.data.camera.zoom > 500) {
@@ -240,8 +275,10 @@ class Room {
         this.data.camera.zoom = -500
       }
     }
+    */
 
     // pinch with right hand to change music volume
+    /*
     if (right.pose === 'pinch') {
       this.data.music.volume = (right.data.position[1] - 50) * 2.5
       if (this.data.music.volume > 1000) {
@@ -250,6 +287,21 @@ class Room {
         this.data.music.volume = 0
       }
     }
+    */
+  }
+
+  debug (dt) {
+    ['left', 'right'].forEach(id => {
+      this.data.hands[id].position = this.entities[id].position
+      this.data.hands[id].rotation = this.entities[id].rotation
+      this.data.hands[id].pinch = this.entities[id].pinch
+      this.data.hands[id].grab = this.entities[id].grab
+      this.data.hands[id].gesture = this.entities[id].gesture
+    })
+    this.data.camera.pan = this.camera.pan
+    this.data.camera.tilt = this.camera.tilt
+    this.data.camera.spin = this.camera.spin
+    this.data.camera.zoom = this.camera.zoom
   }
 
   fini () {

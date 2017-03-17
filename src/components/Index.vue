@@ -86,25 +86,25 @@
               <div class="item two-lines">
                 <i class="item-primary">arrow_forward</i>
                 <div class="item-content">
-                  <q-range v-model="camera.pan[0]" :min="-500" :max="500"></q-range>
+                  <q-range v-model="camera.pan" @input="pan" :min="-500" :max="500"></q-range>
                 </div>
               </div>
               <div class="item two-lines">
                 <i class="item-primary">arrow_upward</i>
                 <div class="item-content">
-                  <q-range v-model="camera.pan[1]" :min="-500" :max="500"></q-range>
+                  <q-range v-model="camera.tilt" @input="tilt" :min="-500" :max="500"></q-range>
                 </div>
               </div>
               <div class="item two-lines">
                 <i class="item-primary">rotate_right</i>
                 <div class="item-content">
-                  <q-range v-model="camera.tilt" :min="-500" :max="500"></q-range>
+                  <q-range v-model="camera.spin" @input="spin" :min="-500" :max="500"></q-range>
                 </div>
               </div>
               <div class="item two-lines">
                 <i class="item-primary">zoom_out_map</i>
                 <div class="item-content">
-                  <q-range v-model="camera.zoom" :min="-500" :max="500"></q-range>
+                  <q-range v-model="camera.zoom" @input="zoom" :min="-500" :max="500"></q-range>
                 </div>
               </div>
             </div>
@@ -203,9 +203,10 @@
           }
         },
         camera: {
-          pan: [0, 0],
+          pan: 0,
           tilt: 0,
-          zoom: 0
+          zoom: 0,
+          spin: 0
         },
         lights: {
           colours: [{
@@ -288,7 +289,11 @@
             room.size()
           })
         }
-      }
+      },
+      pan (value) { if (room) { room.camera.pan = value } },
+      tilt (value) { if (room) { room.camera.tilt = value } },
+      spin (value) { if (room) { room.camera.spin = value } },
+      zoom (value) { if (room) { room.camera.zoom = value } }
     },
     mounted () {
       Loading.show()
