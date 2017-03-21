@@ -201,23 +201,6 @@ class Room {
       this.values.tilt = null
     }
 
-    // grab with left hand and swipe with right hand to change track, or tap
-    // with right hand to change filter
-    if (left.pose === 'grab' && !right.pose) {
-      if (right.gesture === 'swipe_left') {
-        this.jockey.prevTrack()
-        right.gesture = null
-      }
-      if (right.gesture === 'swipe_right') {
-        this.jockey.nextTrack()
-        right.gesture = null
-      }
-      if (right.gesture === 'tap') {
-        this.jockey.nextFilter()
-        right.gesture = null
-      }
-    }
-
     // grab with left hand and pinch with right hand to change volume,
     // frequency and quality
     if (left.pose === 'grab' && right.pose === 'pinch') {
@@ -257,14 +240,23 @@ class Room {
       this.values.depth = null
     }
 
-    // grab with right hand and swipe with left hand to change colour, or tap
-    // with left hand to change pattern
-    if (right.pose === 'grab' && !left.pose) {
-      if (left.gesture === 'swipe_left') {
-        this.lights.prevColour()
-        left.gesture = null
+    // grab with left hand and circle with right hand to change track, or
+    // tap with right hand to change filter
+    if (left.pose === 'grab' && !right.pose) {
+      if (right.gesture === 'circle') {
+        this.jockey.nextTrack()
+        right.gesture = null
       }
-      if (left.gesture === 'swipe_right') {
+      if (right.gesture === 'tap') {
+        this.jockey.nextFilter()
+        right.gesture = null
+      }
+    }
+
+    // grab with right hand and circle with left hand to change colour, or
+    // tap with left hand to change pattern
+    if (right.pose === 'grab' && !left.pose) {
+      if (left.gesture === 'circle') {
         this.lights.nextColour()
         left.gesture = null
       }
