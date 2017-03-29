@@ -71,6 +71,13 @@
       </div>
     </q-drawer>
     <div class="layout-view">
+
+      <div class="row inline">
+        <div class="card animate-pop" v-for="video in videos">
+            <img :src="video.image"/>
+        </div>
+      </div>
+
       <canvas id="viewport"></canvas>
     </div>
     <q-drawer right-side ref="rightDrawer" v-show="debug">
@@ -81,7 +88,26 @@
       </div>
       <div class="card">
         <div class="list item-delimiter">
-          <q-collapsible opened icon="music_note" label="Music">
+          <q-collapsible opened icon="videocam" label="Video">
+            <div class="list">
+              <div class="item two-lines">
+                <i class="item-primary">fiber_manual_record</i>
+                <div class="item-content">
+                  <button class="info" @click="record()">
+                    Record Video
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="list">
+              <div class="item two-lines">
+                <div class="item-content">
+                  <video muted id="video" width="200" height="60"></video>
+                </div>
+              </div>
+            </div>
+          </q-collapsible>
+          <q-collapsible icon="music_note" label="Music">
             <div class="list">
               <div class="item two-lines">
                 <i class="item-primary">queue_music</i>
@@ -212,7 +238,8 @@
           filter: null,
           frequency: 0,
           quality: 0
-        }
+        },
+        videos: []
       }
     },
     watch: {
@@ -238,7 +265,8 @@
       frequency (value) { if (room) { room.jockey.frequency = value } },
       quality (value) { if (room) { room.jockey.quality = value } },
       colour (value) { if (room) { room.lights.setColour(value) } },
-      pattern (value) { if (room) { room.lights.setPattern(value) } }
+      pattern (value) { if (room) { room.lights.setPattern(value) } },
+      record () { if (room) { room.video.record() } }
     },
     mounted () {
       Loading.show()
@@ -248,6 +276,9 @@
         Loading.hide()
         room.run()
         window.addEventListener('resize', this.size)
+      })
+      room.video.list(function (videos) {
+        room.data.videos = videos
       })
     },
     beforeDestroy () {

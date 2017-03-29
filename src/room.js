@@ -8,6 +8,7 @@ import Hand from 'entities/hand.js'
 import Camera from 'entities/camera.js'
 import Jockey from 'entities/jockey.js'
 import Lights from 'entities/lights.js'
+import Video from 'entities/video.js'
 
 import Socket from './socket'
 
@@ -15,7 +16,8 @@ const WIDTH = 1200
 const HEIGHT = 675
 const RATIO = WIDTH / HEIGHT
 const FPS = 50
-const URL = null // 'https://leap.dev:3001'
+const URL = 'https://aruma.cervenka.space/socket.io'
+const API = 'https://aruma.cervenka.space'
 
 const TEXTURES = [
   'open',
@@ -46,6 +48,7 @@ class Room {
     this.camera = new Camera(this.socket)
     this.jockey = new Jockey(this.socket)
     this.lights = new Lights(this.socket)
+    this.video = new Video(this.socket, API)
     this.engine = new PIXI.Application(WIDTH, HEIGHT, {
       view: this.canvas,
       antialias: true
