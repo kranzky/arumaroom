@@ -11,7 +11,7 @@ class Sparks {
       },
       'color': {
         'start': 'ffff00',
-        'end': 'ff00ff'
+        'end': 'ff0000'
       },
       'speed': {
         'start': 0,
@@ -38,7 +38,7 @@ class Sparks {
       'blendMode': 'normal',
       'frequency': 0.008,
       'emitterLifetime': -1,
-      'maxParticles': 1000,
+      'maxParticles': 0,
       'pos': {
         'x': 0,
         'y': 0

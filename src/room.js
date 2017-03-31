@@ -194,7 +194,7 @@ class Room {
     this.socket.update(dt)
 
     for (var id in this.entities) {
-      this.entities[id].update(dt, this.camera)
+      this.entities[id].update(dt, this.camera, this.data.debug)
     }
 
     this.control(dt)

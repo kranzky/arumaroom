@@ -13,7 +13,7 @@ class Stars {
     this.sprite.scale.y = RADIUS / this.sprite.texture.height
   }
 
-  update (dt, camera) {
+  update (dt, camera, debug) {
     this.sprite.rotation = camera.angle
     this.sprite.x = this._shift(this.sprite.x, camera.pan * dt)
     this.sprite.y = this._shift(this.sprite.y, camera.tilt * dt)
