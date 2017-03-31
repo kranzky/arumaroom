@@ -1,7 +1,7 @@
 /* global PIXI */
 import 'pixi.js'
 
-import Sparks from 'sparks'
+import Sparks from './sparks'
 
 const TEXTURES = ['open', 'closed', 'point', 'pinch']
 
@@ -91,7 +91,6 @@ class Hand {
         this.pose_cooldown = 0.3
         this.sparks.emitter.startColor = [255, 255, 0]
         this.sparks.emitter.endColor = [255, 0, 0]
-        console.log(this.sparks.emitter.startColor)
       } else if (this.pinch > 0.9 && this.grab < 0.3 && !this.pose) {
         this.pose = 'pinch'
         this.pose_cooldown = 0.3

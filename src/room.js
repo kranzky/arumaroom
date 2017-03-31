@@ -4,12 +4,12 @@ import 'pixi-particles'
 
 import Leap from 'leapjs'
 
-import Hand from 'entities/hand.js'
-import Camera from 'entities/camera.js'
-import Jockey from 'entities/jockey.js'
-import Stars from 'entities/stars.js'
-
 import Socket from './socket'
+import Camera from './camera.js'
+import Jockey from './jockey.js'
+
+import Hand from './entities/hand.js'
+import Stars from './entities/stars.js'
 
 const WIDTH = 1200
 const HEIGHT = 675
@@ -178,6 +178,7 @@ class Room {
   }
 
   loop (ms) {
+    // TODO: scan gamepads
     if (!this.game_time && ms > 0) {
       this.game_time = ms / 1000
     }
