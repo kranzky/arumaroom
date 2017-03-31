@@ -26,10 +26,43 @@ class Gamepad {
       left: false,
       right: false
     }
+    this.pressed = {
+      buttons: {
+        a: false,
+        b: false,
+        x: false,
+        y: false
+      },
+      shoulder: {
+        left: false,
+        right: false
+      },
+      back: false,
+      start: false,
+      dpad: {
+        up: false,
+        down: false,
+        left: false,
+        right: false
+      }
+    }
+    this.mode = 'move'
   }
 
   scan () {
     let gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : [])
+    this.pressed.buttons.a = this.buttons.a
+    this.pressed.buttons.b = this.buttons.b
+    this.pressed.buttons.x = this.buttons.x
+    this.pressed.buttons.y = this.buttons.y
+    this.pressed.shoulder.left = this.shoulder.left
+    this.pressed.shoulder.right = this.shoulder.right
+    this.pressed.back = this.back
+    this.pressed.start = this.start
+    this.pressed.dpad.up = this.dpad.up
+    this.pressed.dpad.down = this.dpad.down
+    this.pressed.dpad.left = this.dpad.left
+    this.pressed.dpad.right = this.dpad.right
     for (var pad of gamepads) {
       if (pad) {
         this.stick.left[0] = pad.axes[0]
@@ -52,6 +85,18 @@ class Gamepad {
         this.dpad.right = pad.buttons[15].pressed
       }
     }
+    this.pressed.buttons.a = !this.pressed.buttons.a && this.buttons.a
+    this.pressed.buttons.b = !this.pressed.buttons.b && this.buttons.b
+    this.pressed.buttons.x = !this.pressed.buttons.x && this.buttons.x
+    this.pressed.buttons.y = !this.pressed.buttons.y && this.buttons.y
+    this.pressed.shoulder.left = !this.pressed.shoulder.left && this.shoulder.left
+    this.pressed.shoulder.right = !this.pressed.shoulder.right && this.shoulder.right
+    this.pressed.back = !this.pressed.back && this.back
+    this.pressed.start = !this.pressed.start && this.start
+    this.pressed.dpad.up = !this.pressed.dpad.up && this.dpad.up
+    this.pressed.dpad.down = !this.pressed.dpad.down && this.dpad.down
+    this.pressed.dpad.left = !this.pressed.dpad.left && this.dpad.left
+    this.pressed.dpad.right = !this.pressed.dpad.right && this.dpad.right
   }
 }
 

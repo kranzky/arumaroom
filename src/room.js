@@ -27,7 +27,8 @@ const URL = null // 'https://leap.dev:3001'
 //   + pan starfield too (while velocity, then re-centre)
 // * dust particles when moving around (small planets basically, but particles)
 // * grab and pinch to change filter (slowly reverts to normal)
-// * some kind of full-screen effect driven by music
+// * get video recording and playback working
+// * some kind of full-screen effect driven by music?
 
 const ROOMS = {
   chill: {
@@ -229,7 +230,7 @@ class Room {
       }
     }
     // move left stick to rotate camera
-    if (Math.abs(this.gamepad.stick.left[0]) > 0.01) {
+    if (this.gamepad.mode === 'move' && Math.abs(this.gamepad.stick.left[0]) > 0.01) {
       this.camera.spin = this.gamepad.stick.left[0]
     }
 
@@ -247,7 +248,7 @@ class Room {
       this.values.zoom = null
     }
     // move left stick to zoom camera
-    if (Math.abs(this.gamepad.stick.left[1]) > 0.01) {
+    if (this.gamepad.mode === 'move' && Math.abs(this.gamepad.stick.left[1]) > 0.01) {
       this.camera.zoom = -this.gamepad.stick.left[1]
     }
 
@@ -274,11 +275,56 @@ class Room {
       this.values.tilt = null
     }
     // move right stick to pan around
-    if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
-      this.camera.pan = this.gamepad.stick.right[0]
-    }
-    if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
-      this.camera.tilt = -this.gamepad.stick.right[1]
+    if (this.gamepad.mode === 'move') {
+      if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
+        this.camera.pan = this.gamepad.stick.right[0]
+      }
+      if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
+        this.camera.tilt = -this.gamepad.stick.right[1]
+      }
+    } else {
+      if (this.gamepad.pressed.buttons.x) {
+        left.alive = true
+        if (left.grab > 0.5) {
+          left.grab = 0
+          left.pinch = 1
+        } else if (left.pinch > 0.5) {
+          left.grab = 0
+          left.pinch = 0
+        } else {
+          left.grab = 1
+          left.pinch = 0
+        }
+      }
+      if (Math.abs(this.gamepad.stick.left[0]) > 0.01) {
+        left.alive = true
+        left.position[0] += this.gamepad.stick.left[0] * 300 * dt
+      }
+      if (Math.abs(this.gamepad.stick.left[1]) > 0.01) {
+        left.alive = true
+        left.position[2] += this.gamepad.stick.left[1] * 300 * dt
+      }
+      if (this.gamepad.pressed.buttons.b) {
+        right.alive = true
+        if (right.grab > 0.5) {
+          right.grab = 0
+          right.pinch = 1
+        } else if (right.pinch > 0.5) {
+          right.grab = 0
+          right.pinch = 0
+        } else {
+          right.grab = 1
+          right.pinch = 0
+        }
+      }
+      if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
+        right.alive = true
+        right.position[0] += this.gamepad.stick.right[0] * 300 * dt
+      }
+      if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
+        right.alive = true
+        right.position[2] += this.gamepad.stick.right[1] * 300 * dt
+      }
     }
 
     // grab with left hand and pinch with right hand to change volume,
@@ -333,17 +379,25 @@ class Room {
       }
     }
 
-    if (this.gamepad.shoulder.left) {
+    if (this.gamepad.pressed.buttons.a) {
+      if (this.gamepad.mode === 'move') {
+        this.gamepad.mode = 'wave'
+      } else {
+        this.gamepad.mode = 'move'
+      }
+    }
+
+    if (this.gamepad.pressed.shoulder.left) {
       this.prevRoom()
     }
-    if (this.gamepad.shoulder.right) {
+    if (this.gamepad.pressed.shoulder.right) {
       this.nextRoom()
     }
 
-    if (this.gamepad.back) {
+    if (this.gamepad.pressed.back) {
       this.data.debug = !this.data.debug
     }
-    if (this.gamepad.start) {
+    if (this.gamepad.pressed.start) {
       location.reload()
     }
   }
