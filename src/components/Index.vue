@@ -67,6 +67,26 @@
               </dl>
             </div>
           </q-collapsible>
+          <q-collapsible opened icon="videogame_asset" label="Game Pad">
+            <div>
+              <dl>
+                <dt>Left Stick</dt>
+                <dd>{{ pad.sticks.left.map(num => num.toFixed(2)).join(', ') }}</dd>
+              </dl>
+              <dl>
+                <dt>Right Stick</dt>
+                <dd>{{ pad.sticks.right.map(num => num.toFixed(2)).join(', ') }}</dd>
+              </dl>
+              <dl>
+                <dt>Triggers</dt>
+                <dd>{{ pad.triggers.left.toFixed(2) }}, {{ pad.triggers.right.toFixed(2) }}</dd>
+              </dl>
+              <dl>
+                <dt>Buttons</dt>
+                <dd>{{ pad.buttons.length == 0 ? '-' : pad.buttons.join(', ') }}</dd>
+              </dl>
+            </div>
+          </q-collapsible>
         </div>
       </div>
     </q-drawer>
@@ -81,10 +101,10 @@
       </div>
       <div class="card">
         <div class="list item-delimiter">
-          <q-collapsible opened icon="wb_incandescent" label="Room">
+          <q-collapsible opened icon="terrain" label="Room">
             <div class="list">
               <div class="item two-lines">
-                <i class="item-primary">color_lens</i>
+                <i class="item-primary">place</i>
                 <div class="item-content">
                   <q-select type="list" v-model="name" @input="teleport" :options="rooms" placeholder="Room"></q-select>
                 </div>
@@ -185,6 +205,17 @@
             grab: 0,
             gesture: null
           }
+        },
+        pad: {
+          sticks: {
+            left: [0, 0],
+            right: [0, 0]
+          },
+          triggers: {
+            left: 0,
+            right: 0
+          },
+          buttons: []
         },
         rooms: [],
         name: null,

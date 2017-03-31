@@ -7,6 +7,7 @@ import Leap from 'leapjs'
 import Socket from './socket'
 import Camera from './camera.js'
 import Jockey from './jockey.js'
+import Gamepad from './gamepad.js'
 
 import Hand from './entities/hand.js'
 import Stars from './entities/stars.js'
@@ -18,31 +19,23 @@ const FPS = 50
 const URL = null // 'https://leap.dev:3001'
 
 // TODO
+// * hook up gamepad
+//   + start to reload the page
+//   + back to toggle debug
+//   + up/down in debug to toggle screen
+//   + shoulder to toggle zoom
+//   + left stick for rotate/zoom and right stick for translate
+//   + triggers to change audio
+//   + press button to toggle moving hands or camera
 // * 2.5d starfield for correct planet rotation and zoom
 //   + spawn planets in the distance, always be zooming in
 // * better hand controls
 //   + keep the spin controls (open hands)
 //   + make fists to pan and zoom (like superman)
 //   + pan starfield too (while velocity, then re-centre)
-// * change particle colour based on gesture
-//   + only show hands in debug mode
+// * dust particles when moving around (small planets basically, but particles)
 // * grab and pinch to change filter (slowly reverts to normal)
-// * xbox controls
 // * some kind of full-screen effect driven by music
-// * dust particles when moving around
-// * reset hands to home position when no leap controller
-
-// https://phaser.io/examples/v2/demoscene/ballfield
-// https://phaser.io/examples/v2/demoscene/defjam-path-follow
-// https://phaser.io/examples/v2/demoscene/starfield-batched
-// https://phaser.io/examples/v2/category/filters
-// https://phaser.io/examples/v2/filters/mouse-ray
-// https://phaser.io/examples/v2/filters/rainbow-bars
-
-// camera stays fixed at origin
-// we translate and rotate all the objects
-// all objects have a point in 3d space; we re-spawn them if they go outside some bounds
-// all objects also have a radius; we project onto the screen and calculate width and height
 
 const ROOMS = {
   chill: {
@@ -119,6 +112,7 @@ class Room {
     this.socket = new Socket(URL, this.data.debug)
     this.camera = new Camera()
     this.jockey = new Jockey()
+    this.gamepad = new Gamepad()
     this.engine = new PIXI.Application(WIDTH, HEIGHT, {
       view: this.canvas,
       antialias: true
@@ -178,7 +172,7 @@ class Room {
   }
 
   loop (ms) {
-    // TODO: scan gamepads
+    this.gamepad.scan()
     if (!this.game_time && ms > 0) {
       this.game_time = ms / 1000
     }
@@ -313,9 +307,6 @@ class Room {
         right.gesture = null
       }
     }
-
-    // update stars based on camera
-    // update planets based on camera
   }
 
   debug (dt) {
@@ -339,6 +330,24 @@ class Room {
     this.data.music.filter = this.jockey.filter
     this.data.music.frequency = this.jockey.frequency
     this.data.music.quality = this.jockey.quality
+    this.data.pad.sticks.left = [this.gamepad.stick.left[0], this.gamepad.stick.left[1]]
+    this.data.pad.sticks.right = [this.gamepad.stick.right[0], this.gamepad.stick.right[1]]
+    this.data.pad.triggers.left = this.gamepad.trigger.left
+    this.data.pad.triggers.right = this.gamepad.trigger.right
+    let buttons = []
+    if (this.gamepad.buttons.a) { buttons.push('a') }
+    if (this.gamepad.buttons.b) { buttons.push('b') }
+    if (this.gamepad.buttons.x) { buttons.push('x') }
+    if (this.gamepad.buttons.y) { buttons.push('y') }
+    if (this.gamepad.back) { buttons.push('back') }
+    if (this.gamepad.start) { buttons.push('start') }
+    if (this.gamepad.dpad.up) { buttons.push('up') }
+    if (this.gamepad.dpad.down) { buttons.push('down') }
+    if (this.gamepad.dpad.left) { buttons.push('left') }
+    if (this.gamepad.dpad.right) { buttons.push('right') }
+    if (this.gamepad.shoulder.left) { buttons.push('lb') }
+    if (this.gamepad.shoulder.right) { buttons.push('rb') }
+    this.data.pad.buttons = buttons
   }
 
   fini () {
