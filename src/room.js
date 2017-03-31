@@ -205,6 +205,8 @@ class Room {
     if (this.data.debug) {
       this.debug(dt)
     }
+
+    this.socket.send('room', this.room)
   }
 
   control (dt) {
