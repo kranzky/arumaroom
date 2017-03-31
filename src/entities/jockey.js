@@ -1,9 +1,12 @@
 import { Howler, Howl } from 'howler'
 
-const MUSIC = [
-  'bensound-dubstep',
-  'bensound-moose'
-]
+// TODO
+// * don't pre-load music at all
+// * interface to start playing a track; will load track, fade it in, fade out
+//   old track, then destroy old track
+// * interface for adjusting filter
+
+const MUSIC = []
 const FILTERS = [
   'lowpass',
   'highpass',
@@ -17,27 +20,35 @@ const FILTERS = [
 const FADE = 2000
 
 class Jockey {
-  constructor (socket) {
+  constructor () {
     this.music = {}
-    this.tracks = MUSIC.map((name) => {
-      return {
-        label: name,
-        value: name
-      }
-    })
+    this.tracks = []
     this.filters = FILTERS.map((name) => {
       return {
         label: name,
         value: name
       }
     })
-    this.socket = socket
     this.track = null
     this.volume = 1
     this.filter = null
     this.frequency = 10000
     this.quality = 0
     this.id = null
+  }
+
+  play (tracks) {
+    this.tracks = tracks.map((name) => {
+      return {
+        label: name,
+        value: name
+      }
+    })
+    // TODO
+    // * select a random track
+    // * loop to random next track when finished
+    // * load trackes on demand, crossfade when loaded
+    // * get filters working
   }
 
   load () {
@@ -127,7 +138,6 @@ class Jockey {
       this.quality = 100
     }
     Howler.volume(this.volume)
-    this.socket.send('volume', this.volume)
   }
 
   faded (name, id) {

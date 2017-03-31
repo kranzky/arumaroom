@@ -7,7 +7,7 @@ import Leap from 'leapjs'
 import Hand from 'entities/hand.js'
 import Camera from 'entities/camera.js'
 import Jockey from 'entities/jockey.js'
-import Lights from 'entities/lights.js'
+import Stars from 'entities/stars.js'
 
 import Socket from './socket'
 
@@ -17,20 +17,89 @@ const RATIO = WIDTH / HEIGHT
 const FPS = 50
 const URL = null // 'https://leap.dev:3001'
 
+// TODO
+// * 2.5d starfield for correct planet rotation and zoom
+//   + spawn planets in the distance, always be zooming in
+// * better hand controls
+//   + keep the spin controls (open hands)
+//   + make fists to pan and zoom (like superman)
+//   + pan starfield too (while velocity, then re-centre)
+// * change particle colour based on gesture
+//   + only show hands in debug mode
+// * grab and pinch to change filter (slowly reverts to normal)
+// * xbox controls
+// * some kind of full-screen effect driven by music
+// * dust particles when moving around
+// * reset hands to home position when no leap controller
+
+// https://phaser.io/examples/v2/demoscene/ballfield
+// https://phaser.io/examples/v2/demoscene/defjam-path-follow
+// https://phaser.io/examples/v2/demoscene/starfield-batched
+// https://phaser.io/examples/v2/category/filters
+// https://phaser.io/examples/v2/filters/mouse-ray
+// https://phaser.io/examples/v2/filters/rainbow-bars
+
+// camera stays fixed at origin
+// we translate and rotate all the objects
+// all objects have a point in 3d space; we re-spawn them if they go outside some bounds
+// all objects also have a radius; we project onto the screen and calculate width and height
+
+const ROOMS = {
+  chill: {
+    texture: 'green_planet',
+    tracks: [
+      'bensound-acousticbreeze',
+      'bensound-cute',
+      'bensound-happiness'
+    ]
+  },
+  party: {
+    texture: 'red_planet',
+    tracks: [
+      'bensound-dubstep',
+      'bensound-moose'
+    ]
+  },
+  groove: {
+    texture: 'blue_planet',
+    tracks: [
+      'bensound-funkysuspense'
+    ]
+  },
+  rock: {
+    texture: 'purple_planet',
+    tracks: [
+      'bensound-goinghigher'
+    ]
+  },
+  world: {
+    colour: 'yellow',
+    texture: 'yellow_planet',
+    tracks: [
+      'bensound-littleplanet'
+    ]
+  }
+}
+
 const TEXTURES = [
   'open',
   'closed',
   'point',
   'pinch',
   'stars',
-  'planet',
-  'moon',
   'particle'
 ]
 
 class Room {
   constructor (elementId) {
     window.room = this
+    this.rooms = Object.keys(ROOMS).map((name) => {
+      return {
+        label: name,
+        value: name
+      }
+    })
+    this.room = null
     this.game_time = 0
     this.seconds_per_frame = 1.0 / FPS
     this.canvas = document.getElementById(elementId)
@@ -40,12 +109,16 @@ class Room {
     this.data = null
   }
 
+  setRoom (room) {
+    this.room = room
+    this.jockey.play(ROOMS[room].tracks)
+  }
+
   init (data) {
     this.data = data
     this.socket = new Socket(URL, this.data.debug)
-    this.camera = new Camera(this.socket)
-    this.jockey = new Jockey(this.socket)
-    this.lights = new Lights(this.socket)
+    this.camera = new Camera()
+    this.jockey = new Jockey()
     this.engine = new PIXI.Application(WIDTH, HEIGHT, {
       view: this.canvas,
       antialias: true
@@ -60,6 +133,10 @@ class Room {
     for (var name of TEXTURES) {
       PIXI.loader.add(name, require(`assets/${name}.png`))
     }
+    for (var room in ROOMS) {
+      let name = ROOMS[room].texture
+      PIXI.loader.add(name, require(`assets/${name}.png`))
+    }
     PIXI.loader.once('complete', () => {
       for (name of TEXTURES) {
         this.textures[name] = PIXI.loader.resources[name].texture
@@ -70,18 +147,7 @@ class Room {
   }
 
   run () {
-    this.stars = new PIXI.Sprite(this.textures['stars'])
-    this.stars.anchor.x = 0.5
-    this.stars.anchor.y = 0.5
-    this.stars.scale.x = 5
-    this.stars.scale.y = 5
-    this.world.addChild(this.stars)
-    this.planet = new PIXI.Sprite(this.textures['planet'])
-    this.planet.anchor.x = 0.5
-    this.planet.anchor.y = 0.5
-    this.world.addChild(this.planet)
-    this.spawnHand('left', 'left')
-    this.spawnHand('right', 'right')
+    this.spawnEntities()
     Leap.loop({
       background: true,
       frameEventName: 'deviceFrame',
@@ -128,21 +194,13 @@ class Room {
     this.socket.update(dt)
 
     for (var id in this.entities) {
-      this.entities[id].update(dt)
+      this.entities[id].update(dt, this.camera)
     }
 
     this.control(dt)
 
     this.camera.update(dt)
-    this.lights.update(dt)
     this.jockey.update(dt)
-
-    this.stars.rotation = this.camera.angle
-    this.planet.rotation = this.camera.angle
-    this.planet.scale.x = this.camera.scale
-    this.planet.scale.y = this.camera.scale
-    this.planet.position.x = this.camera.position[0]
-    this.planet.position.y = this.camera.position[1]
 
     if (this.data.debug) {
       this.debug(dt)
@@ -253,18 +311,8 @@ class Room {
       }
     }
 
-    // grab with right hand and circle with left hand to change colour, or
-    // tap with left hand to change pattern
-    if (right.pose === 'grab' && !left.pose) {
-      if (left.gesture === 'circle') {
-        this.lights.nextColour()
-        left.gesture = null
-      }
-      if (left.gesture === 'tap') {
-        this.lights.nextPattern()
-        left.gesture = null
-      }
-    }
+    // update stars based on camera
+    // update planets based on camera
   }
 
   debug (dt) {
@@ -275,6 +323,8 @@ class Room {
       this.data.hands[id].grab = this.entities[id].grab
       this.data.hands[id].gesture = this.entities[id].gesture
     })
+    this.data.rooms = this.rooms
+    this.data.name = this.room
     this.data.camera.pan = this.camera.pan * 500
     this.data.camera.tilt = this.camera.tilt * 500
     this.data.camera.spin = this.camera.spin * 500
@@ -286,19 +336,29 @@ class Room {
     this.data.music.filter = this.jockey.filter
     this.data.music.frequency = this.jockey.frequency
     this.data.music.quality = this.jockey.quality
-    this.data.lights.patterns = this.lights.patterns
-    this.data.lights.pattern = this.lights.pattern
-    this.data.lights.colours = this.lights.colours
-    this.data.lights.colour = this.lights.colour
   }
 
   fini () {
     for (var id in this.entities) {
-      this.entities[id].remove(this.world)
+      let entity = this.entities[id]
+      if (entity) {
+        entity.remove(this.world)
+      }
       delete this.entities[id]
     }
     for (var name of TEXTURES) {
-      this.textures[name].destroy(true)
+      let texture = this.textures[name]
+      if (texture) {
+        texture.destroy(true)
+      }
+      delete this.textures[name]
+    }
+    for (var room in ROOMS) {
+      let name = ROOMS[room].texture
+      let texture = this.textures[name]
+      if (texture) {
+        texture.destroy(true)
+      }
       delete this.textures[name]
     }
     this.jockey.fini()
@@ -308,10 +368,13 @@ class Room {
     window.room = undefined
   }
 
-  spawnHand (id, type) {
-    this.entities[id] = new Hand(this.textures, type === 'left')
-    this.entities[id].add(this.world)
-    return this.entities[id]
+  spawnEntities () {
+    this.entities['stars'] = new Stars(this.textures['stars'])
+    this.entities['stars'].add(this.world)
+    this.entities['right'] = new Hand(this.textures, false)
+    this.entities['right'].add(this.world)
+    this.entities['left'] = new Hand(this.textures, true)
+    this.entities['left'].add(this.world)
   }
 }
 

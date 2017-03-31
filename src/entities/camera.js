@@ -1,6 +1,5 @@
 class Camera {
-  constructor (socket) {
-    this.socket = socket
+  constructor () {
     this.position = [0, 0]
     this.angle = 0
     this.scale = 0.5

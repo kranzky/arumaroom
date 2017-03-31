@@ -81,6 +81,16 @@
       </div>
       <div class="card">
         <div class="list item-delimiter">
+          <q-collapsible opened icon="wb_incandescent" label="Room">
+            <div class="list">
+              <div class="item two-lines">
+                <i class="item-primary">color_lens</i>
+                <div class="item-content">
+                  <q-select type="list" v-model="name" @input="teleport" :options="rooms" placeholder="Room"></q-select>
+                </div>
+              </div>
+            </div>
+          </q-collapsible>
           <q-collapsible opened icon="music_note" label="Music">
             <div class="list">
               <div class="item two-lines">
@@ -111,22 +121,6 @@
                 <i class="item-primary">star</i>
                 <div class="item-content">
                   <q-range v-model="music.quality" @input="quality" :min="0" :max="100"></q-range>
-                </div>
-              </div>
-            </div>
-          </q-collapsible>
-          <q-collapsible opened icon="wb_incandescent" label="Lights">
-            <div class="list">
-              <div class="item two-lines">
-                <i class="item-primary">color_lens</i>
-                <div class="item-content">
-                  <q-select type="list" v-model="lights.colour" @input="colour" :options="lights.colours" placeholder="Colour"></q-select>
-                </div>
-              </div>
-              <div class="item two-lines">
-                <i class="item-primary">flare</i>
-                <div class="item-content">
-                  <q-select type="list" v-model="lights.pattern" @input="pattern" :options="lights.patterns" placeholder="Pattern"></q-select>
                 </div>
               </div>
             </div>
@@ -192,17 +186,13 @@
             gesture: null
           }
         },
+        rooms: [],
+        name: null,
         camera: {
           pan: 0,
           tilt: 0,
           zoom: 0,
           spin: 0
-        },
-        lights: {
-          colours: [],
-          colour: null,
-          patterns: [],
-          pattern: null
         },
         music: {
           tracks: [],
@@ -228,6 +218,7 @@
           })
         }
       },
+      teleport (value) { if (room) { room.setRoom(value) } },
       pan (value) { if (room) { room.camera.pan = value / 500 } },
       tilt (value) { if (room) { room.camera.tilt = value / 500 } },
       spin (value) { if (room) { room.camera.spin = value / 500 } },
@@ -236,9 +227,7 @@
       track (value) { if (room) { room.jockey.setTrack(value) } },
       filter (value) { if (room) { room.jockey.setFilter(value) } },
       frequency (value) { if (room) { room.jockey.frequency = value } },
-      quality (value) { if (room) { room.jockey.quality = value } },
-      colour (value) { if (room) { room.lights.setColour(value) } },
-      pattern (value) { if (room) { room.lights.setPattern(value) } }
+      quality (value) { if (room) { room.jockey.quality = value } }
     },
     mounted () {
       Loading.show()
