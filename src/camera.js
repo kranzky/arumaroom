@@ -15,7 +15,7 @@ class Camera {
     } else if (this.spin < -1) {
       this.spin = -1
     }
-    this.angle += this.spin * 10 * dt
+    this.angle += this.spin * 3 * dt
     this.spin -= this.spin * dt
     if (this.zoom > 1) {
       this.zoom = 1

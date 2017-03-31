@@ -19,14 +19,6 @@ const FPS = 50
 const URL = null // 'https://leap.dev:3001'
 
 // TODO
-// * hook up gamepad
-//   + start to reload the page
-//   + back to toggle debug
-//   + up/down in debug to toggle screen
-//   + shoulder to toggle zoom
-//   + left stick for rotate/zoom and right stick for translate
-//   + triggers to change audio
-//   + press button to toggle moving hands or camera
 // * 2.5d starfield for correct planet rotation and zoom
 //   + spawn planets in the distance, always be zooming in
 // * better hand controls
@@ -105,6 +97,24 @@ class Room {
   setRoom (room) {
     this.room = room
     this.jockey.play(ROOMS[room].tracks)
+  }
+
+  nextRoom () {
+    let rooms = Object.keys(ROOMS)
+    let index = rooms.indexOf(this.room) + 1
+    if (index >= rooms.length) {
+      index = 0
+    }
+    this.setRoom(rooms[index])
+  }
+
+  prevRoom () {
+    let rooms = Object.keys(ROOMS)
+    let index = rooms.indexOf(this.room) - 1
+    if (index < 0) {
+      index = rooms.length - 1
+    }
+    this.setRoom(rooms[index])
   }
 
   init (data) {
@@ -218,6 +228,10 @@ class Room {
         this.camera.spin = spin
       }
     }
+    // move left stick to rotate camera
+    if (Math.abs(this.gamepad.stick.left[0]) > 0.01) {
+      this.camera.spin = this.gamepad.stick.left[0]
+    }
 
     // pinch with both hands to zoom in and out
     if (left.pose === 'pinch' && right.pose === 'pinch') {
@@ -231,6 +245,10 @@ class Room {
       }
     } else {
       this.values.zoom = null
+    }
+    // move left stick to zoom camera
+    if (Math.abs(this.gamepad.stick.left[1]) > 0.01) {
+      this.camera.zoom = -this.gamepad.stick.left[1]
     }
 
     // grab with both hands to pan around
@@ -254,6 +272,13 @@ class Room {
     } else {
       this.values.pan = null
       this.values.tilt = null
+    }
+    // move right stick to pan around
+    if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
+      this.camera.pan = this.gamepad.stick.right[0]
+    }
+    if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
+      this.camera.tilt = -this.gamepad.stick.right[1]
     }
 
     // grab with left hand and pinch with right hand to change volume,
@@ -306,6 +331,20 @@ class Room {
         this.jockey.nextFilter()
         right.gesture = null
       }
+    }
+
+    if (this.gamepad.shoulder.left) {
+      this.prevRoom()
+    }
+    if (this.gamepad.shoulder.right) {
+      this.nextRoom()
+    }
+
+    if (this.gamepad.back) {
+      this.data.debug = !this.data.debug
+    }
+    if (this.gamepad.start) {
+      location.reload()
     }
   }
 
