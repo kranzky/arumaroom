@@ -127,7 +127,7 @@ class Jockey {
       this.quality = 100
     }
     Howler.volume(this.volume)
-    this.socket.send('volume', this.volume)
+    this.socket.send('volume', this.volume * 255)
   }
 
   faded (name, id) {
