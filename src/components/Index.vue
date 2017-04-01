@@ -71,13 +71,7 @@
       </div>
     </q-drawer>
     <div class="layout-view">
-
-      <div class="row inline">
-        <div class="card animate-pop" v-for="video in videos">
-            <img :src="video.image"/>
-        </div>
-      </div>
-
+      <video muted id="video"></video>
       <canvas id="viewport"></canvas>
     </div>
     <q-drawer right-side ref="rightDrawer" v-show="debug">
@@ -99,12 +93,9 @@
                 </div>
               </div>
             </div>
-            <div class="list">
-              <div class="item two-lines">
-                <div class="item-content">
-                  <video muted id="video" width="200" height="60"></video>
-                </div>
-              </div>
+            <div class="item" v-for="video in videos" @click="playVideo(video)">
+              <img class="item-primary" :src="video.image">
+              <div class="item-content">{{video.created_at}}</div>
             </div>
           </q-collapsible>
           <q-collapsible icon="music_note" label="Music">
@@ -266,7 +257,8 @@
       quality (value) { if (room) { room.jockey.quality = value } },
       colour (value) { if (room) { room.lights.setColour(value) } },
       pattern (value) { if (room) { room.lights.setPattern(value) } },
-      record () { if (room) { room.video.record() } }
+      record () { if (room) { room.video.record() } },
+      playVideo (video) { if (room) { room.video.play(video) } }
     },
     mounted () {
       Loading.show()
@@ -294,4 +286,14 @@
     margin 0
     width 100%
     height 100%
+
+  .playVideo
+    cursor pointer
+
+  #video
+    position absolute
+    left 0
+    top 0
+    height 100
+    width 100
 </style>

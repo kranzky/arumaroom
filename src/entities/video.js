@@ -11,6 +11,7 @@ class Video {
     this.tick = 0
     this.length = 2000
     window.video = this
+    this.preview = document.getElementById('video')
 
     if (socket) {
       this.socket.io.on('videos:created', (data) => {
@@ -45,7 +46,6 @@ class Video {
 
   onstream () {
     console.log('on stream fce')
-    this.preview = document.getElementById('video')
     this.preview.src = window.URL.createObjectURL(window.stream)
     this.preview.play()
     this.preview.muted = true
@@ -93,6 +93,12 @@ class Video {
     }
     request.open('POST', this.api + url)
     request.send(data)
+  }
+  play (video) {
+    this.preview.src = video.url
+    this.preview.style = 'background: url("' + video.image + '")'
+    this.preview.play()
+    this.preview.muted = true
   }
 
   timer (newone) {
