@@ -85,6 +85,9 @@
         <q-toolbar-title>
           Actions
         </q-toolbar-title>
+        <button @click="fullscreen()">
+            Full
+        </button>
       </div>
       <div class="card">
         <div class="list item-delimiter">
@@ -255,6 +258,17 @@
           })
         }
       },
+      toggleFullScreen (element) {
+        var el = document.documentElement
+        var rfs = el.requestFullscreen ||
+          el.webkitRequestFullScreen ||
+          el.mozRequestFullScreen ||
+          el.msRequestFullscreen
+        rfs.call(el)
+      },
+      fullscreen () {
+        if (room) this.toggleFullScreen(document.documentElemen)
+      },
       pan (value) { if (room) { room.camera.pan = value / 500 } },
       tilt (value) { if (room) { room.camera.tilt = value / 500 } },
       spin (value) { if (room) { room.camera.spin = value / 500 } },
@@ -280,6 +294,9 @@
       room.video.list(function (videos) {
         room.data.videos = videos
       })
+      if (PROD) {
+        this.debug = 0
+      }
     },
     beforeDestroy () {
       window.removeEventListener('resize', this.size)
