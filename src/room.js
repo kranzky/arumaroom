@@ -16,8 +16,6 @@ const WIDTH = 1200
 const HEIGHT = 675
 const RATIO = WIDTH / HEIGHT
 const FPS = 50
-const URL = 'https://aruma.cervenka.space/socket.io'
-const API = 'https://aruma.cervenka.space'
 
 const TEXTURES = [
   'open',
@@ -43,6 +41,13 @@ class Room {
   }
 
   init (data) {
+    let URL = 'https://aruma.cervenka.space/socket.io'
+    let API = 'https://aruma.cervenka.space'
+
+    if (PROD) {
+      URL = 'https://aruma.dev:6001'
+      API = 'https://leapapi.dev'
+    }
     this.data = data
     this.socket = new Socket(URL, this.data.debug)
     this.camera = new Camera(this.socket)
