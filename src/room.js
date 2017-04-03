@@ -48,6 +48,11 @@ class Room {
       URL = 'https://aruma.dev:6001'
       API = 'https://leapapi.dev'
     }
+
+    if (DEV) {
+      URL = 'https://leap.dev:6001'
+      API = 'https://leap.dev'
+    }
     this.data = data
     this.socket = new Socket(URL, this.data.debug)
     this.camera = new Camera(this.socket)
@@ -88,6 +93,13 @@ class Room {
     this.planet.anchor.x = 0.5
     this.planet.anchor.y = 0.5
     this.world.addChild(this.planet)
+    // video
+    // create a renderer instance
+    this.vplayer = new PIXI.Sprite(PIXI.Texture.fromVideoUrl('/statics/testVideo2.mp4'))
+    this.vplayer.anchor.x = -1.5
+    this.vplayer.anchor.y = -1.5
+    this.engine.stage.addChild(this.vplayer)
+    // end of video
     this.spawnHand('left', 'left')
     this.spawnHand('right', 'right')
     Leap.loop({
@@ -144,7 +156,11 @@ class Room {
     this.camera.update(dt)
     this.lights.update(dt)
     this.jockey.update(dt)
-
+    this.vplayer.rotation = this.camera.angle
+    this.vplayer.scale.x = this.camera.scale
+    this.vplayer.scale.y = this.camera.scale
+    this.vplayer.position.x = this.camera.position[0]
+    this.vplayer.position.y = this.camera.position[1]
     this.stars.rotation = this.camera.angle
     this.planet.rotation = this.camera.angle
     this.planet.scale.x = this.camera.scale
