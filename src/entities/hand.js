@@ -1,7 +1,7 @@
 /* global PIXI */
 import 'pixi.js'
 
-import Sparks from 'sparks'
+import Sparks from './sparks'
 
 const TEXTURES = ['open', 'closed', 'point', 'pinch']
 
@@ -27,29 +27,16 @@ class Hand {
     if (flip) {
       this.position[0] *= -1
     }
+    this.alive = 0
   }
 
   leap (hand, gestures) {
+    this.alive = 1
     this.position = hand.palmPosition
     this.velocity = hand.palmVelocity
     this.rotation = [hand.pitch(), hand.roll(), hand.yaw()]
     this.pinch = hand.pinchStrength
     this.grab = hand.grabStrength
-    if (this.pose_cooldown === 0) {
-      if (this.grab > 0.6 && !this.pose) {
-        this.pose = 'grab'
-        this.pose_cooldown = 0.3
-      } else if (this.grab < 0.3 && this.pose === 'grab') {
-        this.pose = null
-        this.pose_cooldown = 0.3
-      } else if (this.pinch > 0.9 && this.grab < 0.3 && !this.pose) {
-        this.pose = 'pinch'
-        this.pose_cooldown = 0.3
-      } else if ((this.pinch < 0.6 || this.grab > 0.5) && this.pose === 'pinch') {
-        this.pose = null
-        this.pose_cooldown = 0.3
-      }
-    }
     if (this.gesture_cooldown === 0) {
       this.gesture = null
       for (var gesture of gestures) {
@@ -84,7 +71,7 @@ class Hand {
     }
   }
 
-  update (dt) {
+  update (dt, camera, debug) {
     this.pose_cooldown -= dt
     if (this.pose_cooldown < 0) {
       this.pose_cooldown = 0
@@ -92,6 +79,29 @@ class Hand {
     this.gesture_cooldown -= dt
     if (this.gesture_cooldown < 0) {
       this.gesture_cooldown = 0
+    }
+    if (this.pose_cooldown === 0) {
+      if (this.grab > 0.6 && !this.pose) {
+        this.pose = 'grab'
+        this.pose_cooldown = 0.3
+        this.sparks.emitter.startColor = [255, 0, 255]
+        this.sparks.emitter.endColor = [0, 0, 255]
+      } else if (this.grab < 0.3 && this.pose === 'grab') {
+        this.pose = null
+        this.pose_cooldown = 0.3
+        this.sparks.emitter.startColor = [255, 255, 0]
+        this.sparks.emitter.endColor = [255, 0, 0]
+      } else if (this.pinch > 0.9 && this.grab < 0.3 && !this.pose) {
+        this.pose = 'pinch'
+        this.pose_cooldown = 0.3
+        this.sparks.emitter.startColor = [0, 255, 255]
+        this.sparks.emitter.endColor = [0, 255, 0]
+      } else if ((this.pinch < 0.6 || this.grab > 0.5) && this.pose === 'pinch') {
+        this.pose = null
+        this.pose_cooldown = 0.3
+        this.sparks.emitter.startColor = [255, 255, 0]
+        this.sparks.emitter.endColor = [255, 0, 0]
+      }
     }
     this.sparks.emitter.update(dt)
     this.sprite.position.x = this.position[0] * 2.5
@@ -104,9 +114,6 @@ class Hand {
     this.sparks.emitter.endScale = 0.1 * scale
     if (this.flip) {
       this.sprite.scale.x *= -1
-      this.sparks.emitter.spawnPos.x = 24 * scale
-    } else {
-      this.sparks.emitter.spawnPos.x = -24 * scale
     }
     this.sprite.rotation = this.rotation[2]
     this.sparks.emitter.maxParticles = 0
@@ -120,6 +127,23 @@ class Hand {
     } else {
       this.sprite.gotoAndStop(0)
     }
+    if (this.alive < 0.67) {
+      this.sparks.emitter.maxParticles = 0
+      this.grab *= 0.95
+      this.pinch *= 0.95
+      this.rotation[0] *= 0.99
+      this.rotation[1] *= 0.99
+      this.rotation[2] *= 0.99
+      if (this.flip) {
+        this.position[0] -= (this.position[0] + 100) * dt
+      } else {
+        this.position[0] += (100 - this.position[0]) * dt
+      }
+      this.position[1] += (200 - this.position[1]) * dt
+      this.position[2] += (100 - this.position[2]) * dt
+    }
+    this.alive *= 0.99
+    this.sprite.visible = debug
   }
 
   add (world) {
