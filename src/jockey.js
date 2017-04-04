@@ -1,11 +1,5 @@
 import { Howler, Howl } from 'howler'
 
-// TODO
-// * don't pre-load music at all
-// * interface to start playing a track; will load track, fade it in, fade out
-//   old track, then destroy old track
-// * interface for adjusting filter
-
 const MUSIC = []
 const FILTERS = [
   'lowpass',

@@ -11,24 +11,13 @@ import Gamepad from './gamepad.js'
 
 import Hand from './entities/hand.js'
 import Stars from './entities/stars.js'
+import Planet from './entities/planet.js'
 
 const WIDTH = 1200
 const HEIGHT = 675
 const RATIO = WIDTH / HEIGHT
 const FPS = 50
 const URL = null // 'https://leap.dev:3001'
-
-// TODO
-// * 2.5d starfield for correct planet rotation and zoom
-//   + spawn planets in the distance, always be zooming in
-// * better hand controls
-//   + keep the spin controls (open hands)
-//   + make fists to pan and zoom (like superman)
-//   + pan starfield too (while velocity, then re-centre)
-// * dust particles when moving around (small planets basically, but particles)
-// * grab and pinch to change filter (slowly reverts to normal)
-// * get video recording and playback working
-// * some kind of full-screen effect driven by music?
 
 const ROOMS = {
   chill: {
@@ -131,6 +120,7 @@ class Room {
     this.world = new PIXI.Container()
     this.engine.stage.addChild(this.world)
     this.size()
+    this.ready = true
   }
 
   load (callback) {
@@ -174,6 +164,9 @@ class Room {
   }
 
   leap (frame) {
+    if (!this.ready) {
+      return
+    }
     frame.hands.forEach(hand => {
       if (hand.valid && hand.confidence > 0.2) {
         let entity = this.entities[hand.type]
@@ -197,6 +190,10 @@ class Room {
   }
 
   update (dt) {
+    if (!this.ready) {
+      return
+    }
+
     this.socket.update(dt)
 
     for (var id in this.entities) {
@@ -444,6 +441,7 @@ class Room {
   }
 
   fini () {
+    this.ready = false
     for (var id in this.entities) {
       let entity = this.entities[id]
       if (entity) {
@@ -476,6 +474,10 @@ class Room {
   spawnEntities () {
     this.entities['stars'] = new Stars(this.textures['stars'])
     this.entities['stars'].add(this.world)
+    for (var room in ROOMS) {
+      this.entities[room] = new Planet(this.textures[ROOMS[room].texture])
+      this.entities[room].add(this.world)
+    }
     this.entities['right'] = new Hand(this.textures, false)
     this.entities['right'].add(this.world)
     this.entities['left'] = new Hand(this.textures, true)
