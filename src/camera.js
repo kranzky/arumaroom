@@ -10,13 +10,23 @@ class Camera {
     let angle = Math.tan((fov * 180) / Math.PI)
     this.screenCentre = [0.5 * width, 0.5 * height]
     this.scaling = [this.screenCentre[0] / angle, this.screenCentre[1] / angle]
+    this.cos = 1
+    this.sin = 0
+    this.rcos = 1
+    this.rsin = 0
   }
 
-  worldToScreen (worldPosition) {
+  worldToScreen (worldPosition, rotate) {
     if (worldPosition[2] <= 0) {
       return null
     }
-    return [(worldPosition[0] * this.scaling[0]) / worldPosition[2], (worldPosition[1] * this.scaling[1]) / worldPosition[2]]
+    let x = (worldPosition[0] * this.scaling[0]) / worldPosition[2]
+    let y = (worldPosition[1] * this.scaling[1]) / worldPosition[2]
+    if (rotate) {
+      return [x * this.cos - y * this.sin, x * this.sin + y * this.cos]
+    } else {
+      return [x, y]
+    }
   }
 
   screenToWorld (screenPosition, worldDepth) {
@@ -69,6 +79,10 @@ class Camera {
     } else if (this.position[1] < -height) {
       this.position[1] = height
     }
+    this.cos = Math.cos(this.angle)
+    this.rcos = Math.cos(Math.PI - this.angle)
+    this.sin = Math.sin(this.angle)
+    this.rsin = Math.sin(Math.PI - this.angle)
   }
 }
 

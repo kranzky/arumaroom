@@ -19,8 +19,11 @@ class Planet {
       this._spawn(camera)
     }
 
-    this.worldPosition[0] -= SPEED * camera.pan * dt
-    this.worldPosition[1] -= SPEED * camera.tilt * dt
+    let dx = camera.pan * camera.rcos - camera.tilt * camera.rsin
+    let dy = camera.pan * camera.rsin + camera.tilt * camera.rcos
+
+    this.worldPosition[0] -= SPEED * dx * dt
+    this.worldPosition[1] -= SPEED * dy * dt
     this.worldPosition[2] -= SPEED * camera.zoom * dt
 
     if (this.worldPosition[2] > 50000) {
@@ -31,7 +34,7 @@ class Planet {
       this.worldPosition[2] = 50000
     }
 
-    let screenPosition = camera.worldToScreen(this.worldPosition)
+    let screenPosition = camera.worldToScreen(this.worldPosition, true)
 
     if (!screenPosition) {
       this.sprite.alpha = 0
@@ -87,7 +90,6 @@ class Planet {
     }
 
   // TODO: z-order
-  // TODO: screen rotation
 
     this.sprite.position.x = screenPosition[0]
     this.sprite.position.y = screenPosition[1]
