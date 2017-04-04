@@ -132,9 +132,12 @@ class Room {
       let name = ROOMS[room].texture
       PIXI.loader.add(name, require(`assets/${name}.png`))
     }
+    console.log(PIXI.loader)
     PIXI.loader.once('complete', () => {
-      for (name of TEXTURES) {
+      for (name in PIXI.loader.resources) {
         this.textures[name] = PIXI.loader.resources[name].texture
+        console.log(name)
+        console.log()
       }
       callback()
     })
@@ -475,7 +478,8 @@ class Room {
     this.entities['stars'] = new Stars(this.textures['stars'])
     this.entities['stars'].add(this.world)
     for (var room in ROOMS) {
-      this.entities[room] = new Planet(this.textures[ROOMS[room].texture])
+      let name = ROOMS[room].texture
+      this.entities[room] = new Planet(this.textures[name])
       this.entities[room].add(this.world)
     }
     this.entities['right'] = new Hand(this.textures, false)
