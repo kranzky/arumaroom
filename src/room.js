@@ -12,10 +12,13 @@ import Gamepad from './gamepad.js'
 import Hand from './entities/hand.js'
 import Stars from './entities/stars.js'
 import Planet from './entities/planet.js'
+import Dust from './entities/dust.js'
 
 const WIDTH = 1200
 const HEIGHT = 675
 const FOV = 60
+
+const DUST = 100
 
 const RATIO = WIDTH / HEIGHT
 
@@ -487,6 +490,10 @@ class Room {
       let radius = ROOMS[room].radius
       this.entities[room] = new Planet(this.textures[name], radius)
       this.entities[room].add(this.world)
+    }
+    for (var i = 0; i < DUST; ++i) {
+      this.entities['dust' + i] = new Dust(this.textures['particle'])
+      this.entities['dust' + i].add(this.world)
     }
     this.entities['right'] = new Hand(this.textures, false)
     this.entities['right'].add(this.world)

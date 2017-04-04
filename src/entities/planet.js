@@ -27,10 +27,10 @@ class Planet {
     this.worldPosition[2] -= SPEED * camera.zoom * dt
 
     if (this.worldPosition[2] > 50000) {
-      this._spawn(camera, null, null, 5000)
+      this._spawn(camera, 5000)
       this.worldPosition[2] = -100
     } else if (this.worldPosition[2] < -100) {
-      this._spawn(camera, null, null, 15000)
+      this._spawn(camera, 15000)
       this.worldPosition[2] = 50000
     }
 
@@ -109,28 +109,10 @@ class Planet {
     this.sprite.destroy(true, true)
   }
 
-  _spawn (camera, x, y, depth) {
+  _spawn (camera, depth) {
     let worldDepth = depth || (Math.random() * 10000 + 5000)
-    let screenPosition = [x || (Math.random() * 600 - Math.random() * 600), y || (Math.random() * 300 - Math.random() * 300)]
-    let screenRadius = 0
+    let screenPosition = [(Math.random() * camera.screenCentre[0] - Math.random() * camera.screenCentre[0]), (Math.random() * camera.screenCentre[1] - Math.random() * camera.screenCentre[1])]
     this.worldPosition = camera.screenToWorld(screenPosition, worldDepth)
-    if (x || y) {
-      screenPosition = camera.worldToScreen(this.worldPosition)
-      screenRadius = camera.worldToScreen([this.worldRadius, this.worldRadius, this.worldPosition[2]])[0]
-      if (x && x < 0) {
-        screenPosition[0] = x - 0.5 * screenRadius
-      }
-      if (x && x > 0) {
-        screenPosition[0] = x + 0.5 * screenRadius
-      }
-      if (y && y < 0) {
-        screenPosition[1] = y - 0.5 * screenRadius
-      }
-      if (y && y > 0) {
-        screenPosition[1] = y + 0.5 * screenRadius
-      }
-      this.worldPosition = camera.screenToWorld(screenPosition, worldDepth)
-    }
   }
 }
 
