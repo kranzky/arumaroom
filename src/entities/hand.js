@@ -28,6 +28,7 @@ class Hand {
       this.position[0] *= -1
     }
     this.alive = 0
+    this.sprite.visible = false
   }
 
   leap (hand, gestures) {

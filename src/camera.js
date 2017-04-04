@@ -1,5 +1,5 @@
 class Camera {
-  constructor () {
+  constructor (width, height, fov) {
     this.position = [0, 0]
     this.angle = 0
     this.scale = 0.5
@@ -7,6 +7,20 @@ class Camera {
     this.zoom = 0
     this.pan = 0
     this.tilt = 0
+    let angle = Math.tan((fov * 180) / Math.PI)
+    this.screenCentre = [0.5 * width, 0.5 * height]
+    this.scale = [this.screenCentre[0] / angle, this.screenCentre[1] / angle]
+  }
+
+  worldToScreen (worldPosition) {
+    if (worldPosition[2] <= 0) {
+      return null
+    }
+    return [(worldPosition[0] * this.scale[0]) / worldPosition[2], (worldPosition[1] * this.scale[1]) / worldPosition[2]]
+  }
+
+  screenToWorld (screenPosition, screenRadius, worldRadius) {
+    return [0, 0, 1]
   }
 
   update (dt) {

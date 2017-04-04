@@ -15,13 +15,17 @@ import Planet from './entities/planet.js'
 
 const WIDTH = 1200
 const HEIGHT = 675
+const FOV = 60
+
 const RATIO = WIDTH / HEIGHT
+
 const FPS = 50
 const URL = null // 'https://leap.dev:3001'
 
 const ROOMS = {
   chill: {
     texture: 'green_planet',
+    radius: 1000,
     tracks: [
       'bensound-acousticbreeze',
       'bensound-cute',
@@ -30,6 +34,7 @@ const ROOMS = {
   },
   party: {
     texture: 'red_planet',
+    radius: 500,
     tracks: [
       'bensound-dubstep',
       'bensound-moose'
@@ -37,18 +42,21 @@ const ROOMS = {
   },
   groove: {
     texture: 'blue_planet',
+    radius: 800,
     tracks: [
       'bensound-funkysuspense'
     ]
   },
   rock: {
     texture: 'purple_planet',
+    radius: 300,
     tracks: [
       'bensound-goinghigher'
     ]
   },
   world: {
     colour: 'yellow',
+    radius: 2000,
     texture: 'yellow_planet',
     tracks: [
       'bensound-littleplanet'
@@ -110,7 +118,7 @@ class Room {
   init (data) {
     this.data = data
     this.socket = new Socket(URL, this.data.debug)
-    this.camera = new Camera()
+    this.camera = new Camera(WIDTH, HEIGHT, FOV)
     this.jockey = new Jockey()
     this.gamepad = new Gamepad()
     this.engine = new PIXI.Application(WIDTH, HEIGHT, {
@@ -132,12 +140,9 @@ class Room {
       let name = ROOMS[room].texture
       PIXI.loader.add(name, require(`assets/${name}.png`))
     }
-    console.log(PIXI.loader)
     PIXI.loader.once('complete', () => {
       for (name in PIXI.loader.resources) {
         this.textures[name] = PIXI.loader.resources[name].texture
-        console.log(name)
-        console.log()
       }
       callback()
     })
@@ -479,7 +484,8 @@ class Room {
     this.entities['stars'].add(this.world)
     for (var room in ROOMS) {
       let name = ROOMS[room].texture
-      this.entities[room] = new Planet(this.textures[name])
+      let radius = ROOMS[room].radius
+      this.entities[room] = new Planet(this.textures[name], radius)
       this.entities[room].add(this.world)
     }
     this.entities['right'] = new Hand(this.textures, false)
