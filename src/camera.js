@@ -9,18 +9,18 @@ class Camera {
     this.tilt = 0
     let angle = Math.tan((fov * 180) / Math.PI)
     this.screenCentre = [0.5 * width, 0.5 * height]
-    this.scale = [this.screenCentre[0] / angle, this.screenCentre[1] / angle]
+    this.scaling = [this.screenCentre[0] / angle, this.screenCentre[1] / angle]
   }
 
   worldToScreen (worldPosition) {
     if (worldPosition[2] <= 0) {
       return null
     }
-    return [(worldPosition[0] * this.scale[0]) / worldPosition[2], (worldPosition[1] * this.scale[1]) / worldPosition[2]]
+    return [(worldPosition[0] * this.scaling[0]) / worldPosition[2], (worldPosition[1] * this.scaling[1]) / worldPosition[2]]
   }
 
-  screenToWorld (screenPosition, screenRadius, worldRadius) {
-    return [0, 0, 1]
+  screenToWorld (screenPosition, worldDepth) {
+    return [(screenPosition[0] * worldDepth) / this.scaling[0], (screenPosition[1] * worldDepth) / this.scaling[1], worldDepth]
   }
 
   update (dt) {

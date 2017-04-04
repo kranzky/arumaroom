@@ -2,6 +2,7 @@
 import 'pixi.js'
 
 const SCREEN_BORDER = 50
+const SPEED = 5000
 
 class Planet {
   constructor (texture, radius) {
@@ -11,26 +12,29 @@ class Planet {
     this.sprite.visible = false
     this.worldRadius = radius
     this.worldPosition = [0, 0, 0]
-    this._spawn()
   }
 
-  // TODO: z-order
-  // TODO: screen rotation
   update (dt, camera, debug) {
-    this.worldPosition[0] -= 5000 * camera.pan * dt
-    this.worldPosition[1] -= 5000 * camera.tilt * dt
-    this.worldPosition[2] -= 100 * camera.zoom * dt
+    if (this.sprite.visible === false) {
+      this._spawn(camera)
+    }
 
-    if (this.worldPosition[2] > 500) {
-      this.worldPosition[2] = -10
-    } else if (this.worldPosition[2] < -10) {
-      this.worldPosition[2] = 500
+    this.worldPosition[0] -= SPEED * camera.pan * dt
+    this.worldPosition[1] -= SPEED * camera.tilt * dt
+    this.worldPosition[2] -= SPEED * camera.zoom * dt
+
+    if (this.worldPosition[2] > 50000) {
+      this._spawn(camera, null, null, 5000)
+      this.worldPosition[2] = -100
+    } else if (this.worldPosition[2] < -100) {
+      this._spawn(camera, null, null, 15000)
+      this.worldPosition[2] = 50000
     }
 
     let screenPosition = camera.worldToScreen(this.worldPosition)
 
     if (!screenPosition) {
-      this.sprite.visible = false
+      this.sprite.alpha = 0
       return
     }
 
@@ -38,37 +42,52 @@ class Planet {
 
     let alpha = 1
     let pos = screenPosition[0] - 0.5 * screenRadius
-    if (pos > camera.screenCentre[0] + SCREEN_BORDER) {
-      // respawn
+    if (pos > camera.screenCentre[0] + SCREEN_BORDER * 10) {
+      this.worldPosition[0] *= -1
+      alpha = 0
+    } else if (pos >= camera.screenCentre[0]) {
+      alpha = 0
     } else if (pos > camera.screenCentre[0] - SCREEN_BORDER) {
       alpha = Math.min(alpha, (camera.screenCentre[0] - pos) / SCREEN_BORDER)
     }
     pos = screenPosition[0] + 0.5 * screenRadius
-    if (pos < -camera.screenCentre[0] - SCREEN_BORDER) {
-      // respawn
+    if (pos < -camera.screenCentre[0] - SCREEN_BORDER * 10) {
+      this.worldPosition[0] *= -1
+      alpha = 0
+    } else if (pos <= -camera.screenCentre[0]) {
+      alpha = 0
     } else if (pos < -camera.screenCentre[0] + SCREEN_BORDER) {
       alpha = Math.min(alpha, (camera.screenCentre[0] + pos) / SCREEN_BORDER)
     }
     pos = screenPosition[1] - 0.5 * screenRadius
-    if (pos > camera.screenCentre[1] + SCREEN_BORDER) {
-      // respawn
+    if (pos > camera.screenCentre[1] + SCREEN_BORDER * 10) {
+      this.worldPosition[1] *= -1
+      alpha = 0
+    } else if (pos >= camera.screenCentre[1]) {
+      alpha = 0
     } else if (pos > camera.screenCentre[1] - SCREEN_BORDER) {
       alpha = Math.min(alpha, (camera.screenCentre[1] - pos) / SCREEN_BORDER)
     }
     pos = screenPosition[1] + 0.5 * screenRadius
-    if (pos < -camera.screenCentre[1] - SCREEN_BORDER) {
-      // respawn
+    if (pos < -camera.screenCentre[1] - SCREEN_BORDER * 10) {
+      this.worldPosition[1] *= -1
+      alpha = 0
+    } else if (pos <= -camera.screenCentre[1]) {
+      alpha = 0
     } else if (pos < -camera.screenCentre[1] + SCREEN_BORDER) {
       alpha = Math.min(alpha, (camera.screenCentre[1] + pos) / SCREEN_BORDER)
     }
-    if (this.worldPosition[2] < 2) {
-      alpha = Math.min(alpha, this.worldPosition[2] / 2)
-    } else if (this.worldPosition[2] > 400) {
-      alpha = Math.min(alpha, (500 - this.worldPosition[2]) / 100)
+    if (this.worldPosition[2] < 100) {
+      alpha = Math.min(alpha, this.worldPosition[2] / 100)
+    } else if (this.worldPosition[2] > 40000) {
+      alpha = Math.min(alpha, (50000 - this.worldPosition[2]) / 10000)
     }
     if (alpha < 0) {
       alpha = 0
     }
+
+  // TODO: z-order
+  // TODO: screen rotation
 
     this.sprite.position.x = screenPosition[0]
     this.sprite.position.y = screenPosition[1]
@@ -88,11 +107,28 @@ class Planet {
     this.sprite.destroy(true, true)
   }
 
-  // TODO: reverse transform
-  _spawn () {
-    this.worldPosition[0] = Math.random() * 10000 - Math.random() * 10000
-    this.worldPosition[1] = Math.random() * 10000 - Math.random() * 10000
-    this.worldPosition[2] = Math.random() * 300 + 100
+  _spawn (camera, x, y, depth) {
+    let worldDepth = depth || (Math.random() * 10000 + 5000)
+    let screenPosition = [x || (Math.random() * 600 - Math.random() * 600), y || (Math.random() * 300 - Math.random() * 300)]
+    let screenRadius = 0
+    this.worldPosition = camera.screenToWorld(screenPosition, worldDepth)
+    if (x || y) {
+      screenPosition = camera.worldToScreen(this.worldPosition)
+      screenRadius = camera.worldToScreen([this.worldRadius, this.worldRadius, this.worldPosition[2]])[0]
+      if (x && x < 0) {
+        screenPosition[0] = x - 0.5 * screenRadius
+      }
+      if (x && x > 0) {
+        screenPosition[0] = x + 0.5 * screenRadius
+      }
+      if (y && y < 0) {
+        screenPosition[1] = y - 0.5 * screenRadius
+      }
+      if (y && y > 0) {
+        screenPosition[1] = y + 0.5 * screenRadius
+      }
+      this.worldPosition = camera.screenToWorld(screenPosition, worldDepth)
+    }
   }
 }
 

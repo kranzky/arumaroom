@@ -285,7 +285,7 @@ class Room {
         this.camera.pan = this.gamepad.stick.right[0]
       }
       if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
-        this.camera.tilt = -this.gamepad.stick.right[1]
+        this.camera.tilt = this.gamepad.stick.right[1]
       }
     } else {
       if (this.gamepad.pressed.buttons.x) {
