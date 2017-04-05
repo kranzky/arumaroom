@@ -10,27 +10,24 @@ import Jockey from './jockey.js'
 import Gamepad from './gamepad.js'
 import Video from 'entities/video.js'
 import Hand from './entities/hand.js'
+import Stars from './entities/stars.js'
+import Planet from './entities/planet.js'
+import Dust from './entities/dust.js'
 
 const WIDTH = 1200
 const HEIGHT = 675
-const RATIO = WIDTH / HEIGHT
-const FPS = 50
+const FOV = 60
 
-// TODO
-// * 2.5d starfield for correct planet rotation and zoom
-//   + spawn planets in the distance, always be zooming in
-// * better hand controls
-//   + keep the spin controls (open hands)
-//   + make fists to pan and zoom (like superman)
-//   + pan starfield too (while velocity, then re-centre)
-// * dust particles when moving around (small planets basically, but particles)
-// * grab and pinch to change filter (slowly reverts to normal)
-// * get video recording and playback working
-// * some kind of full-screen effect driven by music?
+const DUST = 100
+
+const RATIO = WIDTH / HEIGHT
+
+const FPS = 50
 
 const ROOMS = {
   earth: {
     texture: 'green_planet',
+    radius: 1000,
     tracks: [
       'bensound-acousticbreeze',
       'bensound-cute',
@@ -39,6 +36,7 @@ const ROOMS = {
   },
   water: {
     texture: 'red_planet',
+    radius: 500,
     tracks: [
       'bensound-dubstep',
       'bensound-moose'
@@ -46,12 +44,14 @@ const ROOMS = {
   },
   air: {
     texture: 'blue_planet',
+    radius: 800,
     tracks: [
       'bensound-funkysuspense'
     ]
   },
   fire: {
     texture: 'purple_planet',
+    radius: 300,
     tracks: [
       'bensound-goinghigher'
     ]
@@ -125,8 +125,8 @@ class Room {
     }
     this.data = data
     this.socket = new Socket(URL, this.data.debug)
-    this.camera = new Camera()
     this.jockey = new Jockey(this.socket)
+    this.camera = new Camera(WIDTH, HEIGHT, FOV)
     this.gamepad = new Gamepad()
     this.video = new Video(this.socket, API)
     this.engine = new PIXI.Application(WIDTH, HEIGHT, {
@@ -136,6 +136,7 @@ class Room {
     this.world = new PIXI.Container()
     this.engine.stage.addChild(this.world)
     this.size()
+    this.ready = true
   }
 
   load (callback) {
@@ -148,7 +149,7 @@ class Room {
       PIXI.loader.add(name, require(`assets/${name}.png`))
     }
     PIXI.loader.once('complete', () => {
-      for (name of TEXTURES) {
+      for (name in PIXI.loader.resources) {
         this.textures[name] = PIXI.loader.resources[name].texture
       }
       callback()
@@ -157,25 +158,15 @@ class Room {
   }
 
   run () {
-    this.stars = new PIXI.Sprite(this.textures['stars'])
-    this.stars.anchor.x = 0.5
-    this.stars.anchor.y = 0.5
-    this.stars.scale.x = 5
-    this.stars.scale.y = 5
-    this.world.addChild(this.stars)
-    this.planet = new PIXI.Sprite(this.textures['planet'])
-    this.planet.anchor.x = 0.5
-    this.planet.anchor.y = 0.5
-    this.world.addChild(this.planet)
-    // video
-    // create a renderer instance
-    this.vplayer = new PIXI.Sprite(PIXI.Texture.fromVideoUrl('/statics/testVideo2.mp4'))
-    this.vplayer.anchor.x = -1.5
-    this.vplayer.anchor.y = -1.5
-    this.engine.stage.addChild(this.vplayer)
-    // end of video
-    this.spawnHand('left', 'left')
-    this.spawnHand('right', 'right')
+    // // video
+    // // create a renderer instance
+    // this.vplayer = new PIXI.Sprite(PIXI.Texture.fromVideoUrl('/statics/testVideo2.mp4'))
+    // this.vplayer.anchor.x = -1.5
+    // this.vplayer.anchor.y = -1.5
+    // this.engine.stage.addChild(this.vplayer)
+    // // end of video
+
+    this.spawnEntities()
     Leap.loop({
       background: true,
       frameEventName: 'deviceFrame',
@@ -197,6 +188,9 @@ class Room {
   }
 
   leap (frame) {
+    if (!this.ready) {
+      return
+    }
     frame.hands.forEach(hand => {
       if (hand.valid && hand.confidence > 0.2) {
         let entity = this.entities[hand.type]
@@ -220,6 +214,10 @@ class Room {
   }
 
   update (dt) {
+    if (!this.ready) {
+      return
+    }
+
     this.socket.update(dt)
 
     for (var id in this.entities) {
@@ -306,7 +304,7 @@ class Room {
         this.camera.pan = this.gamepad.stick.right[0]
       }
       if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
-        this.camera.tilt = -this.gamepad.stick.right[1]
+        this.camera.tilt = this.gamepad.stick.right[1]
       }
     } else {
       if (this.gamepad.pressed.buttons.x) {
@@ -470,6 +468,7 @@ class Room {
   }
 
   fini () {
+    this.ready = false
     for (var id in this.entities) {
       let entity = this.entities[id]
       if (entity) {
@@ -499,10 +498,23 @@ class Room {
     window.room = undefined
   }
 
-  spawnHand (id, type) {
-    this.entities[id] = new Hand(this.textures, type === 'left')
-    this.entities[id].add(this.world)
-    return this.entities[id]
+  spawnEntities () {
+    this.entities['stars'] = new Stars(this.textures['stars'])
+    this.entities['stars'].add(this.world)
+    for (var room in ROOMS) {
+      let name = ROOMS[room].texture
+      let radius = ROOMS[room].radius
+      this.entities[room] = new Planet(this.textures[name], radius)
+      this.entities[room].add(this.world)
+    }
+    for (var i = 0; i < DUST; ++i) {
+      this.entities['dust' + i] = new Dust(this.textures['particle'])
+      this.entities['dust' + i].add(this.world)
+    }
+    this.entities['right'] = new Hand(this.textures, false)
+    this.entities['right'].add(this.world)
+    this.entities['left'] = new Hand(this.textures, true)
+    this.entities['left'].add(this.world)
   }
 }
 
