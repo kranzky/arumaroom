@@ -4,18 +4,59 @@ import 'pixi-particles'
 
 import Leap from 'leapjs'
 
-import Hand from 'entities/hand.js'
-import Camera from 'entities/camera.js'
-import Jockey from 'entities/jockey.js'
-import Lights from 'entities/lights.js'
-
 import Socket from './socket'
+import Camera from './camera.js'
+import Jockey from './jockey.js'
+import Gamepad from './gamepad.js'
+import Video from 'entities/video.js'
+import Hand from './entities/hand.js'
+import Stars from './entities/stars.js'
+import Planet from './entities/planet.js'
+import Dust from './entities/dust.js'
 
 const WIDTH = 1200
 const HEIGHT = 675
+const FOV = 60
+
+const DUST = 100
+
 const RATIO = WIDTH / HEIGHT
+
 const FPS = 50
-const URL = null // 'https://leap.dev:3001'
+
+const ROOMS = {
+  earth: {
+    texture: 'green_planet',
+    radius: 1000,
+    tracks: [
+      'bensound-acousticbreeze',
+      'bensound-cute',
+      'bensound-happiness'
+    ]
+  },
+  water: {
+    texture: 'red_planet',
+    radius: 500,
+    tracks: [
+      'bensound-dubstep',
+      'bensound-moose'
+    ]
+  },
+  air: {
+    texture: 'blue_planet',
+    radius: 800,
+    tracks: [
+      'bensound-funkysuspense'
+    ]
+  },
+  fire: {
+    texture: 'purple_planet',
+    radius: 300,
+    tracks: [
+      'bensound-goinghigher'
+    ]
+  }
+}
 
 const TEXTURES = [
   'open',
@@ -23,14 +64,19 @@ const TEXTURES = [
   'point',
   'pinch',
   'stars',
-  'planet',
-  'moon',
   'particle'
 ]
 
 class Room {
   constructor (elementId) {
     window.room = this
+    this.rooms = Object.keys(ROOMS).map((name) => {
+      return {
+        label: name,
+        value: name
+      }
+    })
+    this.room = null
     this.game_time = 0
     this.seconds_per_frame = 1.0 / FPS
     this.canvas = document.getElementById(elementId)
@@ -40,12 +86,49 @@ class Room {
     this.data = null
   }
 
+  setRoom (room) {
+    this.room = room
+    this.jockey.play(ROOMS[room].tracks)
+    this.socket.send('room', this.room)
+  }
+
+  nextRoom () {
+    let rooms = Object.keys(ROOMS)
+    let index = rooms.indexOf(this.room) + 1
+    if (index >= rooms.length) {
+      index = 0
+    }
+    this.setRoom(rooms[index])
+  }
+
+  prevRoom () {
+    let rooms = Object.keys(ROOMS)
+    let index = rooms.indexOf(this.room) - 1
+    if (index < 0) {
+      index = rooms.length - 1
+    }
+    this.setRoom(rooms[index])
+  }
+
   init (data) {
+    let URL = 'https://aruma.cervenka.space/socket.io'
+    let API = 'https://aruma.cervenka.space'
+
+    if (PROD) {
+      URL = 'https://aruma.dev:6001'
+      API = 'https://leapapi.dev'
+    }
+
+    if (DEV) {
+      URL = 'https://leap.dev:6001'
+      API = 'https://leap.dev'
+    }
     this.data = data
     this.socket = new Socket(URL, this.data.debug)
-    this.camera = new Camera(this.socket)
     this.jockey = new Jockey(this.socket)
-    this.lights = new Lights(this.socket)
+    this.camera = new Camera(WIDTH, HEIGHT, FOV)
+    this.gamepad = new Gamepad()
+    this.video = new Video(this.socket, API)
     this.engine = new PIXI.Application(WIDTH, HEIGHT, {
       view: this.canvas,
       antialias: true
@@ -53,6 +136,7 @@ class Room {
     this.world = new PIXI.Container()
     this.engine.stage.addChild(this.world)
     this.size()
+    this.ready = true
   }
 
   load (callback) {
@@ -60,8 +144,12 @@ class Room {
     for (var name of TEXTURES) {
       PIXI.loader.add(name, require(`assets/${name}.png`))
     }
+    for (var room in ROOMS) {
+      let name = ROOMS[room].texture
+      PIXI.loader.add(name, require(`assets/${name}.png`))
+    }
     PIXI.loader.once('complete', () => {
-      for (name of TEXTURES) {
+      for (name in PIXI.loader.resources) {
         this.textures[name] = PIXI.loader.resources[name].texture
       }
       callback()
@@ -70,18 +158,15 @@ class Room {
   }
 
   run () {
-    this.stars = new PIXI.Sprite(this.textures['stars'])
-    this.stars.anchor.x = 0.5
-    this.stars.anchor.y = 0.5
-    this.stars.scale.x = 5
-    this.stars.scale.y = 5
-    this.world.addChild(this.stars)
-    this.planet = new PIXI.Sprite(this.textures['planet'])
-    this.planet.anchor.x = 0.5
-    this.planet.anchor.y = 0.5
-    this.world.addChild(this.planet)
-    this.spawnHand('left', 'left')
-    this.spawnHand('right', 'right')
+    // // video
+    // // create a renderer instance
+    // this.vplayer = new PIXI.Sprite(PIXI.Texture.fromVideoUrl('/statics/testVideo2.mp4'))
+    // this.vplayer.anchor.x = -1.5
+    // this.vplayer.anchor.y = -1.5
+    // this.engine.stage.addChild(this.vplayer)
+    // // end of video
+
+    this.spawnEntities()
     Leap.loop({
       background: true,
       frameEventName: 'deviceFrame',
@@ -103,6 +188,9 @@ class Room {
   }
 
   leap (frame) {
+    if (!this.ready) {
+      return
+    }
     frame.hands.forEach(hand => {
       if (hand.valid && hand.confidence > 0.2) {
         let entity = this.entities[hand.type]
@@ -112,6 +200,7 @@ class Room {
   }
 
   loop (ms) {
+    this.gamepad.scan()
     if (!this.game_time && ms > 0) {
       this.game_time = ms / 1000
     }
@@ -125,24 +214,25 @@ class Room {
   }
 
   update (dt) {
+    if (!this.ready) {
+      return
+    }
+
     this.socket.update(dt)
 
     for (var id in this.entities) {
-      this.entities[id].update(dt)
+      this.entities[id].update(dt, this.camera, this.data.debug)
     }
 
     this.control(dt)
 
     this.camera.update(dt)
-    this.lights.update(dt)
     this.jockey.update(dt)
-
-    this.stars.rotation = this.camera.angle
-    this.planet.rotation = this.camera.angle
-    this.planet.scale.x = this.camera.scale
-    this.planet.scale.y = this.camera.scale
-    this.planet.position.x = this.camera.position[0]
-    this.planet.position.y = this.camera.position[1]
+    this.vplayer.rotation = this.camera.angle
+    this.vplayer.scale.x = this.camera.scale
+    this.vplayer.scale.y = this.camera.scale
+    this.vplayer.position.x = this.camera.position[0]
+    this.vplayer.position.y = this.camera.position[1]
 
     if (this.data.debug) {
       this.debug(dt)
@@ -163,6 +253,10 @@ class Room {
         this.camera.spin = spin
       }
     }
+    // move left stick to rotate camera
+    if (this.gamepad.mode === 'move' && Math.abs(this.gamepad.stick.left[0]) > 0.01) {
+      this.camera.spin = this.gamepad.stick.left[0]
+    }
 
     // pinch with both hands to zoom in and out
     if (left.pose === 'pinch' && right.pose === 'pinch') {
@@ -176,6 +270,10 @@ class Room {
       }
     } else {
       this.values.zoom = null
+    }
+    // move left stick to zoom camera
+    if (this.gamepad.mode === 'move' && Math.abs(this.gamepad.stick.left[1]) > 0.01) {
+      this.camera.zoom = -this.gamepad.stick.left[1]
     }
 
     // grab with both hands to pan around
@@ -200,21 +298,56 @@ class Room {
       this.values.pan = null
       this.values.tilt = null
     }
-
-    // grab with left hand and swipe with right hand to change track, or tap
-    // with right hand to change filter
-    if (left.pose === 'grab' && !right.pose) {
-      if (right.gesture === 'swipe_left') {
-        this.jockey.prevTrack()
-        right.gesture = null
+    // move right stick to pan around
+    if (this.gamepad.mode === 'move') {
+      if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
+        this.camera.pan = this.gamepad.stick.right[0]
       }
-      if (right.gesture === 'swipe_right') {
-        this.jockey.nextTrack()
-        right.gesture = null
+      if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
+        this.camera.tilt = this.gamepad.stick.right[1]
       }
-      if (right.gesture === 'tap') {
-        this.jockey.nextFilter()
-        right.gesture = null
+    } else {
+      if (this.gamepad.pressed.buttons.x) {
+        left.alive = true
+        if (left.grab > 0.5) {
+          left.grab = 0
+          left.pinch = 1
+        } else if (left.pinch > 0.5) {
+          left.grab = 0
+          left.pinch = 0
+        } else {
+          left.grab = 1
+          left.pinch = 0
+        }
+      }
+      if (Math.abs(this.gamepad.stick.left[0]) > 0.01) {
+        left.alive = true
+        left.position[0] += this.gamepad.stick.left[0] * 300 * dt
+      }
+      if (Math.abs(this.gamepad.stick.left[1]) > 0.01) {
+        left.alive = true
+        left.position[2] += this.gamepad.stick.left[1] * 300 * dt
+      }
+      if (this.gamepad.pressed.buttons.b) {
+        right.alive = true
+        if (right.grab > 0.5) {
+          right.grab = 0
+          right.pinch = 1
+        } else if (right.pinch > 0.5) {
+          right.grab = 0
+          right.pinch = 0
+        } else {
+          right.grab = 1
+          right.pinch = 0
+        }
+      }
+      if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
+        right.alive = true
+        right.position[0] += this.gamepad.stick.right[0] * 300 * dt
+      }
+      if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
+        right.alive = true
+        right.position[2] += this.gamepad.stick.right[1] * 300 * dt
       }
     }
 
@@ -257,21 +390,39 @@ class Room {
       this.values.depth = null
     }
 
-    // grab with right hand and swipe with left hand to change colour, or tap
-    // with left hand to change pattern
-    if (right.pose === 'grab' && !left.pose) {
-      if (left.gesture === 'swipe_left') {
-        this.lights.prevColour()
-        left.gesture = null
+    // grab with left hand and circle with right hand to change track, or
+    // tap with right hand to change filter
+    if (left.pose === 'grab' && !right.pose) {
+      if (right.gesture === 'circle') {
+        this.jockey.nextTrack()
+        right.gesture = null
       }
-      if (left.gesture === 'swipe_right') {
-        this.lights.nextColour()
-        left.gesture = null
+      if (right.gesture === 'tap') {
+        this.jockey.nextFilter()
+        right.gesture = null
       }
-      if (left.gesture === 'tap') {
-        this.lights.nextPattern()
-        left.gesture = null
+    }
+
+    if (this.gamepad.pressed.buttons.a) {
+      if (this.gamepad.mode === 'move') {
+        this.gamepad.mode = 'wave'
+      } else {
+        this.gamepad.mode = 'move'
       }
+    }
+
+    if (this.gamepad.pressed.shoulder.left) {
+      this.prevRoom()
+    }
+    if (this.gamepad.pressed.shoulder.right) {
+      this.nextRoom()
+    }
+
+    if (this.gamepad.pressed.back) {
+      this.data.debug = !this.data.debug
+    }
+    if (this.gamepad.pressed.start) {
+      location.reload()
     }
   }
 
@@ -283,6 +434,8 @@ class Room {
       this.data.hands[id].grab = this.entities[id].grab
       this.data.hands[id].gesture = this.entities[id].gesture
     })
+    this.data.rooms = this.rooms
+    this.data.name = this.room
     this.data.camera.pan = this.camera.pan * 500
     this.data.camera.tilt = this.camera.tilt * 500
     this.data.camera.spin = this.camera.spin * 500
@@ -294,19 +447,48 @@ class Room {
     this.data.music.filter = this.jockey.filter
     this.data.music.frequency = this.jockey.frequency
     this.data.music.quality = this.jockey.quality
-    this.data.lights.patterns = this.lights.patterns
-    this.data.lights.pattern = this.lights.pattern
-    this.data.lights.colours = this.lights.colours
-    this.data.lights.colour = this.lights.colour
+    this.data.pad.sticks.left = [this.gamepad.stick.left[0], this.gamepad.stick.left[1]]
+    this.data.pad.sticks.right = [this.gamepad.stick.right[0], this.gamepad.stick.right[1]]
+    this.data.pad.triggers.left = this.gamepad.trigger.left
+    this.data.pad.triggers.right = this.gamepad.trigger.right
+    let buttons = []
+    if (this.gamepad.buttons.a) { buttons.push('a') }
+    if (this.gamepad.buttons.b) { buttons.push('b') }
+    if (this.gamepad.buttons.x) { buttons.push('x') }
+    if (this.gamepad.buttons.y) { buttons.push('y') }
+    if (this.gamepad.back) { buttons.push('back') }
+    if (this.gamepad.start) { buttons.push('start') }
+    if (this.gamepad.dpad.up) { buttons.push('up') }
+    if (this.gamepad.dpad.down) { buttons.push('down') }
+    if (this.gamepad.dpad.left) { buttons.push('left') }
+    if (this.gamepad.dpad.right) { buttons.push('right') }
+    if (this.gamepad.shoulder.left) { buttons.push('lb') }
+    if (this.gamepad.shoulder.right) { buttons.push('rb') }
+    this.data.pad.buttons = buttons
   }
 
   fini () {
+    this.ready = false
     for (var id in this.entities) {
-      this.entities[id].remove(this.world)
+      let entity = this.entities[id]
+      if (entity) {
+        entity.remove(this.world)
+      }
       delete this.entities[id]
     }
     for (var name of TEXTURES) {
-      this.textures[name].destroy(true)
+      let texture = this.textures[name]
+      if (texture) {
+        texture.destroy(true)
+      }
+      delete this.textures[name]
+    }
+    for (var room in ROOMS) {
+      let name = ROOMS[room].texture
+      let texture = this.textures[name]
+      if (texture) {
+        texture.destroy(true)
+      }
       delete this.textures[name]
     }
     this.jockey.fini()
@@ -316,10 +498,23 @@ class Room {
     window.room = undefined
   }
 
-  spawnHand (id, type) {
-    this.entities[id] = new Hand(this.textures, type === 'left')
-    this.entities[id].add(this.world)
-    return this.entities[id]
+  spawnEntities () {
+    this.entities['stars'] = new Stars(this.textures['stars'])
+    this.entities['stars'].add(this.world)
+    for (var room in ROOMS) {
+      let name = ROOMS[room].texture
+      let radius = ROOMS[room].radius
+      this.entities[room] = new Planet(this.textures[name], radius)
+      this.entities[room].add(this.world)
+    }
+    for (var i = 0; i < DUST; ++i) {
+      this.entities['dust' + i] = new Dust(this.textures['particle'])
+      this.entities['dust' + i].add(this.world)
+    }
+    this.entities['right'] = new Hand(this.textures, false)
+    this.entities['right'].add(this.world)
+    this.entities['left'] = new Hand(this.textures, true)
+    this.entities['left'].add(this.world)
   }
 }
 
