@@ -15,80 +15,6 @@ import Planet from './entities/planet.js'
 import Dust from './entities/dust.js'
 import Caption from './entities/caption.js'
 
-// 'https://leap.dev:3001',
-const CONFIG = {
-  debug: true,
-  screen: {
-    width: 1200,
-    height: 675,
-    fps: 50,
-    fov: 60
-  },
-  dust: {
-    num: 40,
-    speed: 2000
-  },
-  music: {
-    fade: 2000
-  },
-  textures: {
-    background: 'stars',
-    particle: 'dot'
-  },
-  socket: {
-    url: null,
-    rate: 2
-  },
-  planet: {
-    speed: 1000
-  },
-  captions: {
-    fade: 1000,
-    show: 3000
-  },
-  rooms: {
-    chill: {
-      texture: 'green_planet',
-      radius: 1000,
-      tracks: [
-        'bensound-acousticbreeze',
-        'bensound-cute',
-        'bensound-happiness'
-      ]
-    },
-    party: {
-      texture: 'red_planet',
-      radius: 500,
-      tracks: [
-        'bensound-dubstep',
-        'bensound-moose'
-      ]
-    },
-    groove: {
-      texture: 'blue_planet',
-      radius: 800,
-      tracks: [
-        'bensound-funkysuspense'
-      ]
-    },
-    rock: {
-      texture: 'purple_planet',
-      radius: 300,
-      tracks: [
-        'bensound-goinghigher'
-      ]
-    },
-    world: {
-      colour: 'yellow',
-      radius: 2000,
-      texture: 'yellow_planet',
-      tracks: [
-        'bensound-littleplanet'
-      ]
-    }
-  }
-}
-
 const HAND = [
   'open',
   'closed',
@@ -99,7 +25,7 @@ const HAND = [
 class Room {
   constructor (elementId) {
     window.room = this
-    this.config = CONFIG
+    this.config = require('assets/config.json')
     this.ratio = this.config.screen.width / this.config.screen.height
     this.rooms = Object.keys(this.config.rooms).map((name) => {
       return {
@@ -542,11 +468,11 @@ class Room {
     for (var room in this.config.rooms) {
       let name = this.config.rooms[room].texture
       let radius = this.config.rooms[room].radius
-      this.entities[room] = new Planet(room, this.textures[name], radius, this.config.planet, this.debug)
+      this.entities[room] = new Planet(room, this.textures[name], radius, this.config.planet, this.data.debug)
       this.entities[room].add(this.world, this.space)
     }
     for (var i = 0; i < this.config.dust.num; ++i) {
-      this.entities['dust' + i] = new Dust(this.textures['particle'], this.config.dust, this.debug)
+      this.entities['dust' + i] = new Dust(this.textures['particle'], this.config.dust, this.data.debug)
       this.entities['dust' + i].add(this.world)
     }
     let handTextures = HAND.map(name => this.textures[name])
@@ -554,7 +480,7 @@ class Room {
     this.entities['right'].add(this.world, this.space)
     this.entities['left'] = new Hand(handTextures, this.textures['particle'], true)
     this.entities['left'].add(this.world, this.space)
-    this.entities['caption'] = new Caption(this.config.captions, this.config.debug)
+    this.entities['caption'] = new Caption(this.config.captions, this.data.debug)
     this.entities['caption'].add(this.world, this.space)
   }
 }
