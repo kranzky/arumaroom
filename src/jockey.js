@@ -30,6 +30,7 @@ class Jockey {
     this.quality = 0
     this.playing = null
     this.changing = false
+    this.changed = false
   }
 
   setTracks (tracks) {
@@ -133,6 +134,7 @@ class Jockey {
       this.music[name].fade(0, 1, FADE, this.playing)
     }
     this.track = name
+    this.changed = true
     this.changing = false
   }
 

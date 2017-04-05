@@ -13,6 +13,7 @@ import Hand from './entities/hand.js'
 import Stars from './entities/stars.js'
 import Planet from './entities/planet.js'
 import Dust from './entities/dust.js'
+import Caption from './entities/caption.js'
 
 const WIDTH = 1200
 const HEIGHT = 675
@@ -223,6 +224,14 @@ class Room {
 
     this.camera.update(dt)
     this.jockey.update(dt)
+
+    if (this.game_time <= 3 && this.game_time + dt > 3) {
+      this.entities['caption'].setMessage('Aruma Room')
+    }
+    if (this.jockey.changed) {
+      this.jockey.changed = false
+      this.entities['caption'].setMessage(this.jockey.track)
+    }
 
     if (this.data.debug) {
       this.debug(dt)
@@ -507,6 +516,8 @@ class Room {
     this.entities['right'].add(this.world, this.space)
     this.entities['left'] = new Hand(this.textures, true)
     this.entities['left'].add(this.world, this.space)
+    this.entities['caption'] = new Caption()
+    this.entities['caption'].add(this.world, this.space)
   }
 }
 
