@@ -97,7 +97,7 @@ class Room {
 
   setRoom (room) {
     this.room = room
-    this.jockey.play(ROOMS[room].tracks)
+    this.jockey.setTracks(ROOMS[room].tracks)
   }
 
   nextRoom () {
@@ -137,7 +137,6 @@ class Room {
   }
 
   load (callback) {
-    this.jockey.load()
     for (var name of TEXTURES) {
       PIXI.loader.add(name, require(`assets/${name}.png`))
     }
