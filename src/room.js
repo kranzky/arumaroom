@@ -247,7 +247,7 @@ class Room {
     }
     // move left stick to rotate camera
     if (this.gamepad.mode === 'move' && Math.abs(this.gamepad.stick.left[0]) > 0.01) {
-      this.camera.spin = this.gamepad.stick.left[0]
+      this.camera.spin = -this.gamepad.stick.left[0]
     }
 
     // pinch with both hands to zoom in and out
