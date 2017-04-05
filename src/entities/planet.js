@@ -2,7 +2,7 @@
 import 'pixi.js'
 
 const SCREEN_BORDER = 50
-const SPEED = 5000
+const SPEED = 2000
 
 class Planet {
   constructor (texture, radius) {

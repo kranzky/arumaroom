@@ -18,11 +18,11 @@ const WIDTH = 1200
 const HEIGHT = 675
 const FOV = 60
 
-const DUST = 100
+const DUST = 40
 
 const RATIO = WIDTH / HEIGHT
 
-const FPS = 50
+const FPS = 40
 const URL = null // 'https://leap.dev:3001'
 
 const ROOMS = {
