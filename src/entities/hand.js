@@ -147,9 +147,11 @@ class Hand {
     this.sprite.visible = debug
   }
 
-  add (world) {
+  add (world, group) {
     world.addChild(this.sparks.emitterContainer)
     world.addChild(this.sprite)
+    this.sprite.displayGroup = group
+    this.sparks.emitterContainer.displayGroup = group
   }
 
   remove (world) {

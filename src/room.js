@@ -504,9 +504,9 @@ class Room {
       this.entities['dust' + i].add(this.world)
     }
     this.entities['right'] = new Hand(this.textures, false)
-    this.entities['right'].add(this.world)
+    this.entities['right'].add(this.world, this.space)
     this.entities['left'] = new Hand(this.textures, true)
-    this.entities['left'].add(this.world)
+    this.entities['left'].add(this.world, this.space)
   }
 }
 
