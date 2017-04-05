@@ -5,13 +5,15 @@ const SCREEN_BORDER = 50
 const SPEED = 2000
 
 class Planet {
-  constructor (texture, radius) {
+  constructor (name, texture, radius) {
+    this.name = name
     this.sprite = new PIXI.Sprite(texture)
     this.sprite.anchor.x = 0.5
     this.sprite.anchor.y = 0.5
     this.sprite.visible = false
     this.worldRadius = radius
     this.worldPosition = [0, 0, 0]
+    this.collided = false
   }
 
   update (dt, camera, debug) {
@@ -21,6 +23,10 @@ class Planet {
 
     let dx = camera.pan * camera.rcos - camera.tilt * camera.rsin
     let dy = camera.pan * camera.rsin + camera.tilt * camera.rcos
+
+    if (this.worldPosition[2] > 100 && (this.worldPosition[2] - SPEED * camera.zoom * dt) < 100) {
+      this.collided = true
+    }
 
     this.worldPosition[0] -= SPEED * dx * dt
     this.worldPosition[1] -= SPEED * dy * dt
@@ -38,6 +44,7 @@ class Planet {
 
     if (!screenPosition) {
       this.sprite.alpha = 0
+      this.collided = false
       return
     }
 
@@ -87,6 +94,21 @@ class Planet {
     }
     if (alpha < 0) {
       alpha = 0
+    }
+
+    if (this.collided) {
+      if (screenPosition[0] - 0.5 * screenRadius > -camera.screenCentre[0]) {
+        this.collided = false
+      }
+      if (screenPosition[0] + 0.5 * screenRadius < camera.screenCentre[0]) {
+        this.collided = false
+      }
+      if (screenPosition[1] - 0.5 * screenRadius > -camera.screenCentre[1]) {
+        this.collided = false
+      }
+      if (screenPosition[1] + 0.5 * screenRadius < camera.screenCentre[1]) {
+        this.collided = false
+      }
     }
 
     this.sprite.position.x = screenPosition[0]

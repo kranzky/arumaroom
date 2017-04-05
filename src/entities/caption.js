@@ -8,7 +8,7 @@ class Caption {
   constructor () {
     let style = new PIXI.TextStyle({
       fontFamily: 'Chalkduster',
-      fontSize: 100,
+      fontSize: 72,
       fill: ['#aaffcc', '#ffaacc'],
       dropShadow: true,
       dropShadowBlur: 3

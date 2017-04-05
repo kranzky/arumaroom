@@ -63,6 +63,11 @@ class Jockey {
     this.setTrack(this.setlist[index])
   }
 
+  randomTrack () {
+    let index = Math.floor(Math.random() * this.setlist.length)
+    this.setTrack(this.setlist[index])
+  }
+
   setTrack (name) {
     if (name === this.track || this.changing) {
       return

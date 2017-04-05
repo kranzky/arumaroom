@@ -218,6 +218,11 @@ class Room {
 
     for (var id in this.entities) {
       this.entities[id].update(dt, this.camera, this.data.debug)
+      if (this.entities[id].collided) {
+        this.entities[id].collided = false
+        this.setRoom(this.entities[id].name)
+        this.jockey.randomTrack()
+      }
     }
 
     this.control(dt)
@@ -505,7 +510,7 @@ class Room {
     for (var room in ROOMS) {
       let name = ROOMS[room].texture
       let radius = ROOMS[room].radius
-      this.entities[room] = new Planet(this.textures[name], radius)
+      this.entities[room] = new Planet(room, this.textures[name], radius)
       this.entities[room].add(this.world, this.space)
     }
     for (var i = 0; i < DUST; ++i) {
