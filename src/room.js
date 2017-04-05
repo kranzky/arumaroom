@@ -188,11 +188,18 @@ class Room {
   }
 
   loop (ms) {
+    if (!this.ready) {
+      return
+    }
     this.gamepad.scan()
     if (!this.game_time && ms > 0) {
       this.game_time = ms / 1000
     }
     let dt = ms / 1000 - this.game_time
+    if (dt > 1) {
+      this.game_time += dt
+      dt = 0
+    }
     while (dt > this.seconds_per_frame) {
       this.game_time += this.seconds_per_frame
       dt -= this.seconds_per_frame
@@ -286,10 +293,10 @@ class Room {
     // move right stick to pan around
     if (this.gamepad.mode === 'move') {
       if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
-        this.camera.pan = this.gamepad.stick.right[0]
+        this.camera.pan = -this.gamepad.stick.right[0]
       }
       if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
-        this.camera.tilt = this.gamepad.stick.right[1]
+        this.camera.tilt = -this.gamepad.stick.right[1]
       }
     } else {
       if (this.gamepad.pressed.buttons.x) {
