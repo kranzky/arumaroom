@@ -1,6 +1,6 @@
 /* global PIXI */
 import 'pixi.js'
-import 'pixi-particles'
+import 'pixi-display'
 
 import Leap from 'leapjs'
 
@@ -130,6 +130,8 @@ class Room {
     })
     this.world = new PIXI.Container()
     this.engine.stage.addChild(this.world)
+    this.engine.stage.displayList = new PIXI.DisplayList()
+    this.space = new PIXI.DisplayGroup(0, true)
     this.size()
     this.ready = true
   }
@@ -489,7 +491,7 @@ class Room {
       let name = ROOMS[room].texture
       let radius = ROOMS[room].radius
       this.entities[room] = new Planet(this.textures[name], radius)
-      this.entities[room].add(this.world)
+      this.entities[room].add(this.world, this.space)
     }
     for (var i = 0; i < DUST; ++i) {
       this.entities['dust' + i] = new Dust(this.textures['particle'])

@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/pixi.js@^4.3.1":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@types/pixi.js/-/pixi.js-4.4.2.tgz#6c031164f2aef3e005b2c8c727fe851aa77e5a20"
+
 abbrev@1:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.0.tgz#d0554c2256636e2f56e7c2e5ad183f859428d81f"
@@ -1760,9 +1764,9 @@ eslint-plugin-promise@~3.5.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-3.5.0.tgz#78fbb6ffe047201627569e85a6c5373af2a68fca"
 
-eslint-plugin-standard@~2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-standard/-/eslint-plugin-standard-2.1.1.tgz#97960b1537e1718bb633877d0a650050effff3b0"
+eslint-plugin-standard@~2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-standard/-/eslint-plugin-standard-2.2.0.tgz#61273ddbab958ccc88d94d6bb5b2db63ffbd368e"
 
 eslint@~3.19.0:
   version "3.19.0"
@@ -3298,6 +3302,12 @@ pinkie-promise@^2.0.0:
 pinkie@^2.0.0:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz#72556b80cfa0d48a974e80e77248e80ed4f7f870"
+
+pixi-display@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/pixi-display/-/pixi-display-1.1.1.tgz#37f8d5c10e4e1c39a4ba8c8332da768e20fa7f09"
+  dependencies:
+    "@types/pixi.js" "^4.3.1"
 
 pixi-gl-core@^1.0.3:
   version "1.1.0"

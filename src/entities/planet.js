@@ -89,19 +89,19 @@ class Planet {
       alpha = 0
     }
 
-  // TODO: z-order
-
     this.sprite.position.x = screenPosition[0]
     this.sprite.position.y = screenPosition[1]
     this.sprite.scale.x = screenRadius / this.sprite.texture.width
     this.sprite.scale.y = screenRadius / this.sprite.texture.height
     this.sprite.rotation = camera.angle
     this.sprite.alpha = alpha
+    this.sprite.zOrder = this.worldPosition[2]
     this.sprite.visible = true
   }
 
-  add (world) {
+  add (world, group) {
     world.addChild(this.sprite)
+    this.sprite.displayGroup = group
   }
 
   remove (world) {
