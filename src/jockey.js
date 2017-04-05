@@ -75,7 +75,8 @@ class Jockey {
     this.changing = true
     this.music[name] = new Howl({
       src: [require(`assets/${name}.webm`), require(`assets/${name}.mp3`)],
-      loop: true
+      loop: true,
+      html5: true
     })
     let track = name
     this.music[name].on('load', (id) => {
