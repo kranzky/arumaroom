@@ -15,72 +15,93 @@ import Planet from './entities/planet.js'
 import Dust from './entities/dust.js'
 import Caption from './entities/caption.js'
 
-const WIDTH = 1200
-const HEIGHT = 675
-const FOV = 60
-
-const DUST = 40
-
-const RATIO = WIDTH / HEIGHT
-
-const FPS = 40
-const URL = null // 'https://leap.dev:3001'
-
-const ROOMS = {
-  chill: {
-    texture: 'green_planet',
-    radius: 1000,
-    tracks: [
-      'bensound-acousticbreeze',
-      'bensound-cute',
-      'bensound-happiness'
-    ]
+// 'https://leap.dev:3001',
+const CONFIG = {
+  debug: true,
+  screen: {
+    width: 1200,
+    height: 675,
+    fps: 50,
+    fov: 60
   },
-  party: {
-    texture: 'red_planet',
-    radius: 500,
-    tracks: [
-      'bensound-dubstep',
-      'bensound-moose'
-    ]
+  dust: {
+    num: 40,
+    speed: 2000
   },
-  groove: {
-    texture: 'blue_planet',
-    radius: 800,
-    tracks: [
-      'bensound-funkysuspense'
-    ]
+  music: {
+    fade: 2000
   },
-  rock: {
-    texture: 'purple_planet',
-    radius: 300,
-    tracks: [
-      'bensound-goinghigher'
-    ]
+  textures: {
+    background: 'stars',
+    particle: 'dot'
   },
-  world: {
-    colour: 'yellow',
-    radius: 2000,
-    texture: 'yellow_planet',
-    tracks: [
-      'bensound-littleplanet'
-    ]
+  socket: {
+    url: null,
+    rate: 2
+  },
+  planet: {
+    speed: 1000
+  },
+  captions: {
+    fade: 1000,
+    show: 3000
+  },
+  rooms: {
+    chill: {
+      texture: 'green_planet',
+      radius: 1000,
+      tracks: [
+        'bensound-acousticbreeze',
+        'bensound-cute',
+        'bensound-happiness'
+      ]
+    },
+    party: {
+      texture: 'red_planet',
+      radius: 500,
+      tracks: [
+        'bensound-dubstep',
+        'bensound-moose'
+      ]
+    },
+    groove: {
+      texture: 'blue_planet',
+      radius: 800,
+      tracks: [
+        'bensound-funkysuspense'
+      ]
+    },
+    rock: {
+      texture: 'purple_planet',
+      radius: 300,
+      tracks: [
+        'bensound-goinghigher'
+      ]
+    },
+    world: {
+      colour: 'yellow',
+      radius: 2000,
+      texture: 'yellow_planet',
+      tracks: [
+        'bensound-littleplanet'
+      ]
+    }
   }
 }
 
-const TEXTURES = [
+const HAND = [
   'open',
   'closed',
   'point',
-  'pinch',
-  'stars',
-  'particle'
+  'pinch'
 ]
 
 class Room {
   constructor (elementId) {
     window.room = this
-    this.rooms = Object.keys(ROOMS).map((name) => {
+    this.config = CONFIG
+    this.ratio = this.config.screen.width / this.config.screen.height
+    this.rooms = Object.keys(this.config.rooms).map((name) => {
       return {
         label: name,
         value: name
@@ -88,7 +109,7 @@ class Room {
     })
     this.room = null
     this.game_time = 0
-    this.seconds_per_frame = 1.0 / FPS
+    this.seconds_per_frame = 1.0 / this.config.screen.fps
     this.canvas = document.getElementById(elementId)
     this.textures = {}
     this.entities = {}
@@ -98,11 +119,11 @@ class Room {
 
   setRoom (room) {
     this.room = room
-    this.jockey.setTracks(ROOMS[room].tracks)
+    this.jockey.setTracks(this.config.rooms[room].tracks)
   }
 
   nextRoom () {
-    let rooms = Object.keys(ROOMS)
+    let rooms = Object.keys(this.config.rooms)
     let index = rooms.indexOf(this.room) + 1
     if (index >= rooms.length) {
       index = 0
@@ -111,7 +132,7 @@ class Room {
   }
 
   prevRoom () {
-    let rooms = Object.keys(ROOMS)
+    let rooms = Object.keys(this.config.rooms)
     let index = rooms.indexOf(this.room) - 1
     if (index < 0) {
       index = rooms.length - 1
@@ -121,11 +142,11 @@ class Room {
 
   init (data) {
     this.data = data
-    this.socket = new Socket(URL, this.data.debug)
-    this.camera = new Camera(WIDTH, HEIGHT, FOV)
-    this.jockey = new Jockey()
+    this.socket = new Socket(this.config.socket, this.data.debug)
+    this.camera = new Camera(this.config.screen, this.data.debug)
+    this.jockey = new Jockey(this.config.music, this.data.debug)
     this.gamepad = new Gamepad()
-    this.engine = new PIXI.Application(WIDTH, HEIGHT, {
+    this.engine = new PIXI.Application(this.config.screen.width, this.config.screen.height, {
       view: this.canvas,
       antialias: true
     })
@@ -138,11 +159,15 @@ class Room {
   }
 
   load (callback) {
-    for (var name of TEXTURES) {
-      PIXI.loader.add(name, require(`assets/${name}.png`))
+    for (var pose of HAND) {
+      PIXI.loader.add(pose, require(`assets/${pose}.png`))
     }
-    for (var room in ROOMS) {
-      let name = ROOMS[room].texture
+    for (var name in this.config.textures) {
+      let file = this.config.textures[name]
+      PIXI.loader.add(name, require(`assets/${file}.png`))
+    }
+    for (var room in this.config.rooms) {
+      let name = this.config.rooms[room].texture
       PIXI.loader.add(name, require(`assets/${name}.png`))
     }
     PIXI.loader.once('complete', () => {
@@ -168,11 +193,11 @@ class Room {
     this.world.position.x = this.engine.renderer.width / 2
     this.world.position.y = this.engine.renderer.height / 2
     let ratio = this.canvas.scrollWidth / this.canvas.scrollHeight
-    if (ratio < RATIO) {
-      this.world.scale.y = ratio / RATIO
+    if (ratio < this.ratio) {
+      this.world.scale.y = ratio / this.ratio
     }
-    if (ratio > RATIO) {
-      this.world.scale.x = RATIO / ratio
+    if (ratio > this.ratio) {
+      this.world.scale.x = this.ratio / ratio
     }
   }
 
@@ -482,15 +507,22 @@ class Room {
       }
       delete this.entities[id]
     }
-    for (var name of TEXTURES) {
+    for (var pose of HAND) {
+      let texture = this.textures[pose]
+      if (texture) {
+        texture.destroy(true)
+      }
+      delete this.textures[pose]
+    }
+    for (var name in this.config.textures) {
       let texture = this.textures[name]
       if (texture) {
         texture.destroy(true)
       }
       delete this.textures[name]
     }
-    for (var room in ROOMS) {
-      let name = ROOMS[room].texture
+    for (var room in this.config.rooms) {
+      let name = this.config.rooms[room].texture
       let texture = this.textures[name]
       if (texture) {
         texture.destroy(true)
@@ -505,23 +537,24 @@ class Room {
   }
 
   spawnEntities () {
-    this.entities['stars'] = new Stars(this.textures['stars'])
+    this.entities['stars'] = new Stars(this.textures['background'])
     this.entities['stars'].add(this.world)
-    for (var room in ROOMS) {
-      let name = ROOMS[room].texture
-      let radius = ROOMS[room].radius
-      this.entities[room] = new Planet(room, this.textures[name], radius)
+    for (var room in this.config.rooms) {
+      let name = this.config.rooms[room].texture
+      let radius = this.config.rooms[room].radius
+      this.entities[room] = new Planet(room, this.textures[name], radius, this.config.planet, this.debug)
       this.entities[room].add(this.world, this.space)
     }
-    for (var i = 0; i < DUST; ++i) {
-      this.entities['dust' + i] = new Dust(this.textures['particle'])
+    for (var i = 0; i < this.config.dust.num; ++i) {
+      this.entities['dust' + i] = new Dust(this.textures['particle'], this.config.dust, this.debug)
       this.entities['dust' + i].add(this.world)
     }
-    this.entities['right'] = new Hand(this.textures, false)
+    let handTextures = HAND.map(name => this.textures[name])
+    this.entities['right'] = new Hand(handTextures, this.textures['particle'], false)
     this.entities['right'].add(this.world, this.space)
-    this.entities['left'] = new Hand(this.textures, true)
+    this.entities['left'] = new Hand(handTextures, this.textures['particle'], true)
     this.entities['left'].add(this.world, this.space)
-    this.entities['caption'] = new Caption()
+    this.entities['caption'] = new Caption(this.config.captions, this.config.debug)
     this.entities['caption'].add(this.world, this.space)
   }
 }

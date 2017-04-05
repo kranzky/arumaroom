@@ -1,5 +1,7 @@
 class Camera {
-  constructor (width, height, fov) {
+  constructor (config, debug) {
+    this.config = config
+    this.debug = debug
     this.position = [0, 0]
     this.angle = 0
     this.scale = 0.5
@@ -7,8 +9,8 @@ class Camera {
     this.zoom = 0
     this.pan = 0
     this.tilt = 0
-    let angle = Math.tan((fov * 180) / Math.PI)
-    this.screenCentre = [0.5 * width, 0.5 * height]
+    let angle = Math.tan((this.config.fov * 180) / Math.PI)
+    this.screenCentre = [0.5 * this.config.width, 0.5 * this.config.height]
     this.scaling = [this.screenCentre[0] / angle, this.screenCentre[1] / angle]
     this.cos = 1
     this.sin = 0

@@ -3,13 +3,9 @@ import 'pixi.js'
 
 import Sparks from './sparks'
 
-const TEXTURES = ['open', 'closed', 'point', 'pinch']
-
 class Hand {
-  constructor (textures, flip = false) {
-    this.sprite = new PIXI.extras.AnimatedSprite(
-      TEXTURES.map(name => textures[name])
-    )
+  constructor (textures, particle, flip = false) {
+    this.sprite = new PIXI.extras.AnimatedSprite(textures)
     this.sprite.anchor.x = 0.5
     this.sprite.anchor.y = 0.5
     this.sprite.alpha = 0.5
@@ -22,7 +18,7 @@ class Hand {
     this.gesture = null
     this.gesture_cooldown = 0
     this.trail = true
-    this.sparks = new Sparks(textures['particle'])
+    this.sparks = new Sparks(particle)
     this.sparks.emitter.maxParticles = 0
     this.flip = flip
     if (flip) {

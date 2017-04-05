@@ -10,10 +10,11 @@ const FILTERS = [
   'notch',
   'allpass'
 ]
-const FADE = 2000
 
 class Jockey {
-  constructor () {
+  constructor (config, debug) {
+    this.config = config
+    this.debug = debug
     this.music = {}
     this.setlist = []
     this.tracks = []
@@ -128,7 +129,7 @@ class Jockey {
 
   _loaded (name, id) {
     if (this.playing) {
-      this.music[this.track].fade(1, 0, FADE, this.playing)
+      this.music[this.track].fade(1, 0, this.config.fade, this.playing)
     }
     let offset = 0
     if (this.setlist.indexOf(this.track) >= 0) {
@@ -137,7 +138,7 @@ class Jockey {
     this.playing = this.music[name].play()
     if (offset > 0) {
       this.music[name].seek(offset, this.playing)
-      this.music[name].fade(0, 1, FADE, this.playing)
+      this.music[name].fade(0, 1, this.config.fade, this.playing)
     }
     this.track = name
     this.changed = true

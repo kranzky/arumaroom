@@ -1,11 +1,10 @@
 /* global PIXI */
 import 'pixi.js'
 
-const FADE = 1000
-const SHOW = 3000
-
 class Caption {
-  constructor () {
+  constructor (config, debug) {
+    this.config = config
+    this.debug = debug
     let style = new PIXI.TextStyle({
       fontFamily: 'Chalkduster',
       fontSize: 72,
@@ -29,7 +28,7 @@ class Caption {
     this.text.visible = true
     this.text.text = message
     this.state = 'fadeIn'
-    this.time = FADE
+    this.time = this.config.fade
   }
 
   update (dt, camera, debug) {
@@ -41,15 +40,15 @@ class Caption {
       case 'fadeIn':
         if (this.time <= 0) {
           this.state = 'show'
-          this.time = SHOW
+          this.time = this.config.show
         } else {
-          this.text.alpha += dt * (FADE / 1000)
+          this.text.alpha += dt * (this.config.fade / 1000)
         }
         break
       case 'show':
         if (this.time <= 0) {
           this.state = 'fadeOut'
-          this.time = FADE
+          this.time = this.config.fade
           this.text.alpha = 1
         }
         break
@@ -58,7 +57,7 @@ class Caption {
           this.text.visible = false
           this.state = null
         } else {
-          this.text.alpha -= dt * (FADE / 1000)
+          this.text.alpha -= dt * (this.config.fade / 1000)
         }
         break
     }

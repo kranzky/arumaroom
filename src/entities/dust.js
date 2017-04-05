@@ -1,9 +1,9 @@
 import Trails from './trails'
 
-const SPEED = 2000
-
 class Dust {
-  constructor (texture) {
+  constructor (texture, config, debug) {
+    this.config = config
+    this.debug = debug
     this.worldRadius = 0.4
     this.worldPosition = [0, 0, 0]
     this.trails = new Trails(texture)
@@ -22,9 +22,9 @@ class Dust {
     let dx = camera.pan * camera.rcos - camera.tilt * camera.rsin
     let dy = camera.pan * camera.rsin + camera.tilt * camera.rcos
 
-    this.worldPosition[0] -= SPEED * dx * dt
-    this.worldPosition[1] -= SPEED * dy * dt
-    this.worldPosition[2] -= SPEED * camera.zoom * dt
+    this.worldPosition[0] -= this.config.speed * dx * dt
+    this.worldPosition[1] -= this.config.speed * dy * dt
+    this.worldPosition[2] -= this.config.speed * camera.zoom * dt
 
     if (this.worldPosition[2] > 1000) {
       this.trails.emitterContainer.visible = false
