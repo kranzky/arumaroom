@@ -1,6 +1,6 @@
 import * as io from 'socket.io-client'
 
-const RATE = 2
+const RATE = 5
 
 class Socket {
   constructor (url, debug) {
@@ -29,9 +29,9 @@ class Socket {
     this.cooldown -= dt
     if (this.cooldown < 0) {
       this.cooldown = 1 / RATE
-      // for (var event in this.payload) {
-      //   this.process(event, this.payload[event])
-      // }
+      for (var event in this.payload) {
+        this.process(event, this.payload[event])
+      }
       this.payload = {}
     }
   }
@@ -41,7 +41,7 @@ class Socket {
       this.io.emit(event, data)
     }
     if (this.debug) {
-     // console.debug('[socket]', event, data)
+      console.debug('[socket]', event, data)
     }
   }
 }

@@ -20,7 +20,8 @@ const FILTERS = [
 const FADE = 2000
 
 class Jockey {
-  constructor () {
+  constructor (socket) {
+    this.socket = socket
     this.music = {}
     this.tracks = []
     this.filters = FILTERS.map((name) => {
@@ -138,7 +139,7 @@ class Jockey {
       this.quality = 100
     }
     Howler.volume(this.volume)
-    this.socket.send('volume', this.volume * 255)
+    this.socket.send('volume', this.volume)
   }
 
   faded (name, id) {

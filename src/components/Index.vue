@@ -98,10 +98,13 @@
         <q-toolbar-title>
           Actions
         </q-toolbar-title>
+        <button @click="fullscreen()">
+            Full
+        </button>
       </div>
       <div class="card">
         <div class="list item-delimiter">
-          <q-collapsible opened icon="videocam" label="Video">
+          <q-collapsible icon="videocam" label="Video">
             <div class="list">
               <div class="item two-lines">
                 <i class="item-primary">fiber_manual_record</i>
@@ -112,7 +115,7 @@
                 </div>
                 <video muted id="video" width="200" height="60"></video>
               </div>
-              <div class="item" v-for="video in videos">
+              <div class="item" v-for="video in videos" @click="playVideo(video)">
                 <img class="item-primary thumbnail" :src="video.image">
                 <div class="item-content">{{video.created_at}}</div>
               </div>
@@ -269,6 +272,17 @@
         }
       },
       teleport (value) { if (room) { room.setRoom(value) } },
+      toggleFullScreen (element) {
+        var el = document.documentElement
+        var rfs = el.requestFullscreen ||
+          el.webkitRequestFullScreen ||
+          el.mozRequestFullScreen ||
+          el.msRequestFullscreen
+        rfs.call(el)
+      },
+      fullscreen () {
+        if (room) this.toggleFullScreen(document.documentElemen)
+      },
       pan (value) { if (room) { room.camera.pan = value / 500 } },
       tilt (value) { if (room) { room.camera.tilt = value / 500 } },
       spin (value) { if (room) { room.camera.spin = value / 500 } },
@@ -278,7 +292,8 @@
       filter (value) { if (room) { room.jockey.setFilter(value) } },
       frequency (value) { if (room) { room.jockey.frequency = value } },
       quality (value) { if (room) { room.jockey.quality = value } },
-      record () { if (room) { room.video.record() } }
+      record () { if (room) { room.video.record() } },
+      playVideo (video) { if (room) { room.video.play(video) } }
     },
     mounted () {
       Loading.show()
@@ -292,6 +307,9 @@
       room.video.list(function (videos) {
         room.data.videos = videos
       })
+      if (PROD) {
+        this.debug = 0
+      }
     },
     beforeDestroy () {
       window.removeEventListener('resize', this.size)
@@ -306,4 +324,14 @@
     margin 0
     width 100%
     height 100%
+
+  .playVideo
+    cursor pointer
+
+  #video
+    position absolute
+    left 0
+    top 0
+    height 100
+    width 100
 </style>

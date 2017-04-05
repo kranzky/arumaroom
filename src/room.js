@@ -9,16 +9,12 @@ import Camera from './camera.js'
 import Jockey from './jockey.js'
 import Gamepad from './gamepad.js'
 import Video from 'entities/video.js'
-
 import Hand from './entities/hand.js'
-import Stars from './entities/stars.js'
 
 const WIDTH = 1200
 const HEIGHT = 675
 const RATIO = WIDTH / HEIGHT
 const FPS = 50
-const URL = 'https://aruma.cervenka.space/socket.io'
-const API = 'https://aruma.cervenka.space'
 
 // TODO
 // * 2.5d starfield for correct planet rotation and zoom
@@ -33,7 +29,7 @@ const API = 'https://aruma.cervenka.space'
 // * some kind of full-screen effect driven by music?
 
 const ROOMS = {
-  chill: {
+  earth: {
     texture: 'green_planet',
     tracks: [
       'bensound-acousticbreeze',
@@ -41,30 +37,23 @@ const ROOMS = {
       'bensound-happiness'
     ]
   },
-  party: {
+  water: {
     texture: 'red_planet',
     tracks: [
       'bensound-dubstep',
       'bensound-moose'
     ]
   },
-  groove: {
+  air: {
     texture: 'blue_planet',
     tracks: [
       'bensound-funkysuspense'
     ]
   },
-  rock: {
+  fire: {
     texture: 'purple_planet',
     tracks: [
       'bensound-goinghigher'
-    ]
-  },
-  world: {
-    colour: 'yellow',
-    texture: 'yellow_planet',
-    tracks: [
-      'bensound-littleplanet'
     ]
   }
 }
@@ -87,7 +76,6 @@ class Room {
         value: name
       }
     })
-    console.log(this.rooms)
     this.room = null
     this.game_time = 0
     this.seconds_per_frame = 1.0 / FPS
@@ -101,6 +89,7 @@ class Room {
   setRoom (room) {
     this.room = room
     this.jockey.play(ROOMS[room].tracks)
+    this.socket.send('room', this.room)
   }
 
   nextRoom () {
@@ -122,10 +111,22 @@ class Room {
   }
 
   init (data) {
+    let URL = 'https://aruma.cervenka.space/socket.io'
+    let API = 'https://aruma.cervenka.space'
+
+    if (PROD) {
+      URL = 'https://aruma.dev:6001'
+      API = 'https://leapapi.dev'
+    }
+
+    if (DEV) {
+      URL = 'https://leap.dev:6001'
+      API = 'https://leap.dev'
+    }
     this.data = data
     this.socket = new Socket(URL, this.data.debug)
     this.camera = new Camera()
-    this.jockey = new Jockey()
+    this.jockey = new Jockey(this.socket)
     this.gamepad = new Gamepad()
     this.video = new Video(this.socket, API)
     this.engine = new PIXI.Application(WIDTH, HEIGHT, {
@@ -156,7 +157,25 @@ class Room {
   }
 
   run () {
-    this.spawnEntities()
+    this.stars = new PIXI.Sprite(this.textures['stars'])
+    this.stars.anchor.x = 0.5
+    this.stars.anchor.y = 0.5
+    this.stars.scale.x = 5
+    this.stars.scale.y = 5
+    this.world.addChild(this.stars)
+    this.planet = new PIXI.Sprite(this.textures['planet'])
+    this.planet.anchor.x = 0.5
+    this.planet.anchor.y = 0.5
+    this.world.addChild(this.planet)
+    // video
+    // create a renderer instance
+    this.vplayer = new PIXI.Sprite(PIXI.Texture.fromVideoUrl('/statics/testVideo2.mp4'))
+    this.vplayer.anchor.x = -1.5
+    this.vplayer.anchor.y = -1.5
+    this.engine.stage.addChild(this.vplayer)
+    // end of video
+    this.spawnHand('left', 'left')
+    this.spawnHand('right', 'right')
     Leap.loop({
       background: true,
       frameEventName: 'deviceFrame',
@@ -211,12 +230,15 @@ class Room {
 
     this.camera.update(dt)
     this.jockey.update(dt)
+    this.vplayer.rotation = this.camera.angle
+    this.vplayer.scale.x = this.camera.scale
+    this.vplayer.scale.y = this.camera.scale
+    this.vplayer.position.x = this.camera.position[0]
+    this.vplayer.position.y = this.camera.position[1]
 
     if (this.data.debug) {
       this.debug(dt)
     }
-
-    this.socket.send('room', this.room)
   }
 
   control (dt) {
@@ -477,13 +499,10 @@ class Room {
     window.room = undefined
   }
 
-  spawnEntities () {
-    this.entities['stars'] = new Stars(this.textures['stars'])
-    this.entities['stars'].add(this.world)
-    this.entities['right'] = new Hand(this.textures, false)
-    this.entities['right'].add(this.world)
-    this.entities['left'] = new Hand(this.textures, true)
-    this.entities['left'].add(this.world)
+  spawnHand (id, type) {
+    this.entities[id] = new Hand(this.textures, type === 'left')
+    this.entities[id].add(this.world)
+    return this.entities[id]
   }
 }
 
