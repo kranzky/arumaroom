@@ -9,7 +9,8 @@ Installation
 ------------
 
 ```
-> nvm use 7.6.0
+> nvm use 7.8.0
+> yarn global add quasar-cli
 > yarn install
 > quasar dev
 ```

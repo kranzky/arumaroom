@@ -1,17 +1,16 @@
 import * as io from 'socket.io-client'
 
-const RATE = 2
-
 class Socket {
-  constructor (url, debug) {
+  constructor (config, debug) {
+    this.config = config
     this.debug = debug
     this.cooldown = 0
     this.payload = {}
-    if (url) {
-      this.io = io(url, { secure: true })
+    if (this.config.connect) {
+      this.io = io(this.config.url, { secure: true })
       this.io.on('connect', () => {
         if (this.debug) {
-          console.debug('[socket] connected to', url)
+          console.debug('[socket] connected to', this.config.url)
         }
       })
     }
@@ -19,14 +18,16 @@ class Socket {
 
   // buffer up all of the sends
   send (event, data) {
-    this.payload[event] = data
+    if (data) {
+      this.payload[event] = data
+    }
   }
 
   // only process the buffered data twice a second
   update (dt) {
     this.cooldown -= dt
     if (this.cooldown < 0) {
-      this.cooldown = 1 / RATE
+      this.cooldown = 1 / this.config.rate
       for (var event in this.payload) {
         this.process(event, this.payload[event])
       }

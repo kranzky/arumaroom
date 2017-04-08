@@ -1,0 +1,58 @@
+{
+  "water": {
+    "texture": "statics/blue_planet.png",
+    "radius": 800,
+    "tracks": [
+      {
+        "name": "Funky Suspense",
+        "url": "statics/bensound-funkysuspense.webm"
+      }
+    ]
+  },
+  "fire": {
+    "radius": 2000,
+    "texture": "statics/yellow_planet.png",
+    "tracks": [
+      {
+        "name": "Dubstep",
+        "url": "statics/bensound-dubstep.webm"
+      },
+      {
+        "name": "Moose",
+        "url": "statics/bensound-moose.webm"
+      }
+    ]
+  },
+  "earth": {
+    "texture": "statics/purple_planet.png",
+    "radius": 500,
+    "tracks": [
+      {
+        "name": "Little Planet",
+        "url": "statics/bensound-littleplanet.webm"
+      },
+      {
+        "name": "Going Higher",
+        "url": "statics/bensound-goinghigher.webm"
+      }
+    ]
+  },
+  "air": {
+    "texture": "statics/green_planet.png",
+    "radius": 1000,
+    "tracks": [
+      {
+        "name": "Acoustic Breeze",
+        "url": "statics/bensound-acousticbreeze.webm"
+      },
+      {
+        "name": "Cute",
+        "url": "statics/bensound-cute.webm"
+      },
+      {
+        "name": "Happiness",
+        "url": "statics/bensound-happiness.webm"
+      }
+    ]
+  }
+}
