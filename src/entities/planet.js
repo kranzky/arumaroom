@@ -33,12 +33,12 @@ class Planet {
     this.worldPosition[1] -= this.config.speed * dy * dt
     this.worldPosition[2] -= this.config.speed * camera.zoom * dt
 
-    if (this.worldPosition[2] > 50000) {
+    if (this.worldPosition[2] > 20000) {
       this._spawn(camera, 5000)
       this.worldPosition[2] = -100
     } else if (this.worldPosition[2] < -100) {
       this._spawn(camera, 15000)
-      this.worldPosition[2] = 50000
+      this.worldPosition[2] = 20000
     }
 
     let screenPosition = camera.worldToScreen(this.worldPosition, true)
@@ -90,8 +90,8 @@ class Planet {
     }
     if (this.worldPosition[2] < 100) {
       alpha = Math.min(alpha, this.worldPosition[2] / 100)
-    } else if (this.worldPosition[2] > 40000) {
-      alpha = Math.min(alpha, (50000 - this.worldPosition[2]) / 10000)
+    } else if (this.worldPosition[2] > 19000) {
+      alpha = Math.min(alpha, (20000 - this.worldPosition[2]) / 1000)
     }
     if (alpha < 0) {
       alpha = 0

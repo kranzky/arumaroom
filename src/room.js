@@ -1,5 +1,6 @@
 /* global PIXI */
 import 'pixi.js'
+import 'pixi-filters'
 import 'pixi-display'
 
 import Leap from 'leapjs'
@@ -80,14 +81,18 @@ class Room {
     this.camera = new Camera(this.config.screen, this.data.debug)
     this.jockey = new Jockey(this.config.music, this.data.debug)
     this.gamepad = new Gamepad()
-    this.engine = new PIXI.Application(this.config.screen.width, this.config.screen.height, {
-      view: this.canvas,
-      antialias: true
-    })
+    this.engine = new PIXI.Application(this.config.screen.width, this.config.screen.height, { view: this.canvas })
     this.world = new PIXI.Container()
+    this.bloom = new PIXI.filters.BloomFilter()
+    this.shock = new PIXI.filters.TwistFilter()
+    this.bloom.blur = 4
+    this.shock.offset = this.camera.screenCentre
+    this.shock.angle = 0
+    this.shock.radius = 300
     this.engine.stage.addChild(this.world)
-    this.engine.stage.displayList = new PIXI.DisplayList()
+    this.world.displayList = new PIXI.DisplayList()
     this.space = new PIXI.DisplayGroup(0, true)
+    this.engine.stage.filters = [this.bloom, this.shock]
     this.size()
     this.ready = true
   }
@@ -180,6 +185,8 @@ class Room {
       if (this.entities[id].collided) {
         this.entities[id].collided = false
         this.setRoom(this.entities[id].name)
+        this.shock.radius = 300
+        this.shock.angle = 5
       }
     }
 
@@ -198,6 +205,11 @@ class Room {
 
     if (this.room) {
       this.socket.send('magic', this.magic)
+    }
+
+    if (this.shock.angle > 0) {
+      this.shock.angle -= this.shock.angle * dt
+      this.shock.radius -= this.shock.radius * dt
     }
 
     if (this.data.debug) {
