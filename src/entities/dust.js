@@ -70,8 +70,9 @@ class Dust {
     this.trails.emitter.endAlpha = 0
   }
 
-  add (world) {
+  add (world, group) {
     world.addChild(this.trails.emitterContainer)
+    this.trails.emitterContainer.displayGroup = group
   }
 
   remove (world) {

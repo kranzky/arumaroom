@@ -473,7 +473,7 @@ class Room {
     }
     for (var i = 0; i < this.config.dust.num; ++i) {
       this.entities['dust' + i] = new Dust(this.textures['particle'], this.config.dust, this.data.debug)
-      this.entities['dust' + i].add(this.world)
+      this.entities['dust' + i].add(this.world, this.space)
     }
     let handTextures = HAND.map(name => this.textures[name])
     this.entities['right'] = new Hand(handTextures, this.textures['particle'], false)
