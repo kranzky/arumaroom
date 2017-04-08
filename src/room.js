@@ -228,11 +228,11 @@ class Room {
 
     this.camera.update(dt)
     this.jockey.update(dt)
-    this.vplayer.rotation = this.camera.angle
-    this.vplayer.scale.x = this.camera.scale
-    this.vplayer.scale.y = this.camera.scale
-    this.vplayer.position.x = this.camera.position[0]
-    this.vplayer.position.y = this.camera.position[1]
+    // this.vplayer.rotation = this.camera.angle
+    // this.vplayer.scale.x = this.camera.scale
+    // this.vplayer.scale.y = this.camera.scale
+    // this.vplayer.position.x = this.camera.position[0]
+    // this.vplayer.position.y = this.camera.position[1]
 
     if (this.data.debug) {
       this.debug(dt)

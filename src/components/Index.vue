@@ -201,10 +201,9 @@
 </template>
 
 <script>
-  import { Loading } from 'quasar'
+  import { Loading, Toast } from 'quasar'
   import Vue from 'vue'
   import Room from 'room.js'
-
   let room = null
 
   export default {
@@ -299,6 +298,7 @@
       Loading.show()
       room = new Room('viewport')
       room.init(this.$data)
+      window.Toast = Toast
       room.load(() => {
         Loading.hide()
         room.run()

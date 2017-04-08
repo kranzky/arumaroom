@@ -1,6 +1,7 @@
 import RecordRTC from 'recordrtc'
 import 'gumadapter'
 import axios from 'axios'
+import { Howl } from 'howler'
 
 class Video {
   constructor (socket, API) {
@@ -12,12 +13,24 @@ class Video {
     this.length = 2000
     window.video = this
     this.preview = document.getElementById('video')
-
+    this.sound = new Howl({
+      src: require(`assets/ding.webm`)
+    })
     if (socket) {
       this.socket.io.on('videos:created', (data) => {
         console.debug('video has been created')
         var video = data.video
         window.room.data.videos.unshift(video)
+      })
+      this.socket.io.on('phones:created', (data) => {
+        console.debug('phones has been created')
+        console.log(data)
+        let phone = data.phone
+        window.Toast.create.positive({
+          html: phone.name + ' entered room. #' + phone.id,
+          icon: 'phone'
+        })
+        this.sound.play()
       })
     }
   }
