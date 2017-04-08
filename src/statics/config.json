@@ -20,7 +20,7 @@
   },
   "socket": {
     "rate": 2,
-    "url": "https://leap.dev:3001",
+    "url": "https://aruma.cervenka.space/socket.io",
     "connect": false
   },
   "planet": {

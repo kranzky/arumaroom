@@ -2307,6 +2307,10 @@ hosted-git-info@^2.1.4:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.4.1.tgz#4b0445e41c004a8bd1337773a4ff790ca40318c8"
 
+howler-plugin-effect-chain@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/howler-plugin-effect-chain/-/howler-plugin-effect-chain-0.1.2.tgz#9d7bdd5f19be7a9c6b43ac3ac69544d6bea46ce5"
+
 howler@~2.0.2:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/howler/-/howler-2.0.3.tgz#a76ab5a37ae5cc1e4a5a0f3ce279ca2c72b5efc7"

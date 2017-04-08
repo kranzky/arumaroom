@@ -1,16 +1,5 @@
 import { Howler, Howl } from 'howler'
 
-const FILTERS = [
-  'lowpass',
-  'highpass',
-  'bandpass',
-  'lowshelf',
-  'highshelf',
-  'peaking',
-  'notch',
-  'allpass'
-]
-
 class Jockey {
   constructor (config, debug) {
     this.config = config
@@ -18,21 +7,20 @@ class Jockey {
     this.music = {}
     this.setlist = []
     this.tracks = []
-    this.filters = FILTERS.map((name) => {
-      return {
-        label: name,
-        value: name
-      }
-    })
     this.track = null
     this.trackName = null
     this.volume = 1
-    this.filter = null
-    this.frequency = 10000
-    this.quality = 0
+    this.frequency = 0
+    this.quality = 0.5
     this.playing = null
     this.changing = false
     this.changed = false
+    Howler.volume(this.volume)
+    this.effect = Howler.ctx.createBiquadFilter()
+    this.effect.type = 'lowpass'
+//  Howler.masterGain.disconnect(Howler.ctx.destination)
+    Howler.masterGain.connect(this.effect)
+    this.effect.connect(Howler.ctx.destination)
   }
 
   setTracks (tracks) {
@@ -78,7 +66,7 @@ class Jockey {
     }
     this.changing = true
     console.debug('[music] loading', this.setlist[index].url)
-    this.music[name] = new Howl({ src: this.setlist[index].url, loop: true, html5: true })
+    this.music[name] = new Howl({ src: this.setlist[index].url, loop: true })
     this.music[name].on('load', () => {
       this._loaded(name, index)
     })
@@ -87,43 +75,25 @@ class Jockey {
     })
   }
 
-  nextFilter () {
-    let index = FILTERS.indexOf(this.filter) + 1
-    if (index >= FILTERS.length) {
-      index = 0
-    }
-    this.setFilter(FILTERS[index])
-  }
-
-  prevFilter () {
-    let index = FILTERS.indexOf(this.filter) - 1
-    if (index < 0) {
-      index = FILTERS.length - 1
-    }
-    this.setFilter(FILTERS[index])
-  }
-
-  setFilter (name) {
-    this.filter = name
-  }
-
   update (dt) {
     if (this.volume < 0) {
       this.volume = 0
     } else if (this.volume > 1) {
       this.volume = 1
     }
-    if (this.frequency < 20) {
-      this.frequency = 20
-    } else if (this.frequency > 20000) {
-      this.frequency = 20000
+    if (this.frequency < 0) {
+      this.frequency = 0
+    } else if (this.frequency > 1) {
+      this.frequency = 1
     }
     if (this.quality < 0) {
       this.quality = 0
-    } else if (this.quality > 100) {
-      this.quality = 100
+    } else if (this.quality > 1) {
+      this.quality = 1
     }
     Howler.volume(this.volume)
+    this._changeFrequency()
+    this.effect.Q.value = this.quality * 30
   }
 
   _loaded (name, index) {
@@ -152,6 +122,14 @@ class Jockey {
       this.music[name].unload()
       delete this.music[name]
     }
+  }
+
+  _changeFrequency () {
+    let minValue = 40
+    let maxValue = Howler.ctx.sampleRate / 2
+    let numberOfOctaves = Math.log(maxValue / minValue) / Math.LN2
+    let multiplier = Math.pow(2, numberOfOctaves * (this.frequency - 1.0))
+    this.effect.frequency.value = maxValue * multiplier
   }
 }
 

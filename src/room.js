@@ -409,10 +409,7 @@ class Room {
     this.data.music.tracks = this.jockey.tracks
     this.data.music.track = this.jockey.track
     this.data.music.volume = this.jockey.volume * 1000
-    this.data.music.filters = this.jockey.filters
-    this.data.music.filter = this.jockey.filter
-    this.data.music.frequency = this.jockey.frequency
-    this.data.music.quality = this.jockey.quality
+    this.data.music.frequency = this.jockey.frequency * 1000
     this.data.pad.sticks.left = [this.gamepad.stick.left[0], this.gamepad.stick.left[1]]
     this.data.pad.sticks.right = [this.gamepad.stick.right[0], this.gamepad.stick.right[1]]
     this.data.pad.triggers.left = this.gamepad.trigger.left

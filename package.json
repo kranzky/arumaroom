@@ -15,6 +15,7 @@
     "babel-runtime": "~6.23.0",
     "fastclick": "~1.0.6",
     "howler": "~2.0.2",
+    "howler-plugin-effect-chain": "^0.1.2",
     "leapjs": "~0.6.4",
     "material-design-icons": "~3.0.1",
     "moment": "~2.18.1",

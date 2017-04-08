@@ -134,19 +134,7 @@
               <div class="item two-lines">
                 <i class="item-primary">equalizer</i>
                 <div class="item-content">
-                  <q-select type="list" v-model="music.filter" @input="filter" :options="music.filters" placeholder="Filter"></q-select>
-                </div>
-              </div>
-              <div class="item two-lines">
-                <i class="item-primary">whatshot</i>
-                <div class="item-content">
-                  <q-range v-model="music.frequency" @input="frequency" :min="20" :max="20000"></q-range>
-                </div>
-              </div>
-              <div class="item two-lines">
-                <i class="item-primary">star</i>
-                <div class="item-content">
-                  <q-range v-model="music.quality" @input="quality" :min="0" :max="100"></q-range>
+                  <q-range v-model="music.frequency" @input="frequency" :min="0" :max="1000"></q-range>
                 </div>
               </div>
             </div>
@@ -236,10 +224,7 @@
           tracks: [],
           track: null,
           volume: 0,
-          filters: [],
-          filter: null,
-          frequency: 0,
-          quality: 0
+          frequency: 0
         }
       }
     },
@@ -264,9 +249,7 @@
       zoom (value) { if (room) { room.camera.zoom = value / 500 } },
       volume (value) { if (room) { room.jockey.volume = value / 1000 } },
       track (value) { if (room) { room.jockey.setTrack(value) } },
-      filter (value) { if (room) { room.jockey.setFilter(value) } },
-      frequency (value) { if (room) { room.jockey.frequency = value } },
-      quality (value) { if (room) { room.jockey.quality = value } }
+      frequency (value) { if (room) { room.jockey.frequency = value / 1000 } }
     },
     mounted () {
       Loading.show()
