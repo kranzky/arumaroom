@@ -41,11 +41,14 @@ class Room {
     this.entities = {}
     this.values = {}
     this.data = null
+    this.magic = 0.5
   }
 
   setRoom (room) {
     this.room = room
     this.jockey.setTracks(this.config.rooms[room].tracks)
+    this.jockey.randomTrack()
+    this.socket.send('room', this.room)
   }
 
   nextRoom () {
@@ -68,6 +71,7 @@ class Room {
 
   init (data) {
     this.data = data
+    this.config.socket.url = null
     this.socket = new Socket(this.config.socket, this.data.debug)
     this.camera = new Camera(this.config.screen, this.data.debug)
     this.jockey = new Jockey(this.config.music, this.data.debug)
@@ -172,7 +176,6 @@ class Room {
       if (this.entities[id].collided) {
         this.entities[id].collided = false
         this.setRoom(this.entities[id].name)
-        this.jockey.randomTrack()
       }
     }
 
@@ -189,11 +192,13 @@ class Room {
       this.entities['caption'].setMessage(this.jockey.track)
     }
 
+    if (this.room) {
+      this.socket.send('magic', this.magic)
+    }
+
     if (this.data.debug) {
       this.debug(dt)
     }
-
-    this.socket.send('room', this.room)
   }
 
   control (dt) {
@@ -422,6 +427,7 @@ class Room {
     if (this.gamepad.shoulder.left) { buttons.push('lb') }
     if (this.gamepad.shoulder.right) { buttons.push('rb') }
     this.data.pad.buttons = buttons
+    this.data.magic = this.magic * 1000
   }
 
   fini () {

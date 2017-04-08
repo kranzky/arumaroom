@@ -109,6 +109,12 @@
                   <q-select type="list" v-model="name" @input="teleport" :options="rooms" placeholder="Room"></q-select>
                 </div>
               </div>
+              <div class="item two-lines">
+                <i class="item-primary">highlight</i>
+                <div class="item-content">
+                  <q-range v-model="magic" @input="spell" :min="0" :max="1000"></q-range>
+                </div>
+              </div>
             </div>
           </q-collapsible>
           <q-collapsible opened icon="music_note" label="Music">
@@ -219,6 +225,7 @@
         },
         rooms: [],
         name: null,
+        magic: 0,
         camera: {
           pan: 0,
           tilt: 0,
@@ -250,6 +257,7 @@
         }
       },
       teleport (value) { if (room) { room.setRoom(value) } },
+      spell (value) { if (room) { room.magic = value / 1000 } },
       pan (value) { if (room) { room.camera.pan = value / 500 } },
       tilt (value) { if (room) { room.camera.tilt = value / 500 } },
       spin (value) { if (room) { room.camera.spin = value / 500 } },
