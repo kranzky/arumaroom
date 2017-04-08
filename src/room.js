@@ -3,6 +3,7 @@ import 'pixi.js'
 import 'pixi-display'
 
 import Leap from 'leapjs'
+import axios from 'axios'
 
 import Socket from './socket'
 import Camera from './camera.js'
@@ -27,6 +28,9 @@ class Room {
     window.room = this
     this.config = require('statics/config.json')
     this.config.rooms = require('statics/rooms.json')
+    if (this.config.music.connect) {
+      this._loadRemoteMusic(this.config.music.url)
+    }
     this.ratio = this.config.screen.width / this.config.screen.height
     this.rooms = Object.keys(this.config.rooms).map((name) => {
       return {
@@ -487,6 +491,19 @@ class Room {
     this.entities['left'].add(this.world, this.space)
     this.entities['caption'] = new Caption(this.config.captions, this.data.debug)
     this.entities['caption'].add(this.world, this.space)
+  }
+
+  _loadRemoteMusic (url) {
+    let options = {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+    axios.get(url, options).then(response => {
+      for (var room in response.data) {
+        this.config.rooms[room].tracks = response.data[room]
+      }
+    })
   }
 }
 

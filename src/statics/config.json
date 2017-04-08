@@ -10,16 +10,18 @@
     "speed": 2000
   },
   "music": {
-    "fade": 2000
+    "fade": 2000,
+    "url": "https://aruma.cervenka.space/music",
+    "connect": false
   },
   "textures": {
     "background": "stars",
     "particle": "dot"
   },
   "socket": {
-    "enabled": false,
+    "rate": 2,
     "url": "https://leap.dev:3001",
-    "rate": 2
+    "connect": false
   },
   "planet": {
     "speed": 1000

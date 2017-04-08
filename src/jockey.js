@@ -77,6 +77,7 @@ class Jockey {
       return
     }
     this.changing = true
+    console.debug('[music] loading', this.setlist[index].url)
     this.music[name] = new Howl({ src: this.setlist[index].url, loop: true, html5: true })
     this.music[name].on('load', () => {
       this._loaded(name, index)
