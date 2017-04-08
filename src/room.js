@@ -381,6 +381,13 @@ class Room {
       }
     }
 
+    if (this.gamepad.trigger.left > 0) {
+      this.jockey.frequency = this.gamepad.trigger.left
+    }
+    if (this.gamepad.trigger.right > 0) {
+      this.magic = this.gamepad.trigger.right
+    }
+
     if (this.gamepad.pressed.buttons.a) {
       if (this.gamepad.mode === 'move') {
         this.gamepad.mode = 'wave'
@@ -394,6 +401,12 @@ class Room {
     }
     if (this.gamepad.pressed.shoulder.right) {
       this.nextRoom()
+    }
+    if (this.gamepad.pressed.dpad.left) {
+      this.jockey.prevTrack()
+    }
+    if (this.gamepad.pressed.dpad.right) {
+      this.jockey.nextTrack()
     }
 
     if (this.gamepad.pressed.back) {

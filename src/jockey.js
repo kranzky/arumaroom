@@ -39,7 +39,10 @@ class Jockey {
   }
 
   nextTrack () {
-    let index = this.track ? this.track + 1 : 0
+    if (this.setlist.length === 0) {
+      return
+    }
+    let index = (this.track || 0) + 1
     if (index >= this.setlist.length) {
       index = 0
     }
@@ -47,7 +50,10 @@ class Jockey {
   }
 
   prevTrack () {
-    let index = this.track ? this.track - 1 : -1
+    if (this.setlist.length === 0) {
+      return
+    }
+    let index = (this.track || 0) - 1
     if (index < 0) {
       index = this.setlist.length - 1
     }
@@ -102,6 +108,9 @@ class Jockey {
       console.debug('[music] fadeout', this.trackName)
       this.music[this.trackName].fade(1, 0, this.config.fade, this.playing)
       offset = this.music[name].duration() * Math.random()
+    } else {
+      this.changed = true
+      this.changing = false
     }
     if (offset > 0) {
       this.music[name].seek(offset)
@@ -111,8 +120,6 @@ class Jockey {
     this.playing = this.music[name].play()
     this.track = index
     this.trackName = name
-    this.changed = true
-    this.changing = false
   }
 
   _faded (name, id) {
@@ -121,6 +128,8 @@ class Jockey {
       this.music[name].stop(id)
       this.music[name].unload()
       delete this.music[name]
+      this.changed = true
+      this.changing = false
     }
   }
 
