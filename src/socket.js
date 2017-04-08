@@ -6,7 +6,7 @@ class Socket {
     this.debug = debug
     this.cooldown = 0
     this.payload = {}
-    if (this.config.url) {
+    if (this.config.enabled) {
       this.io = io(this.config.url, { secure: true })
       this.io.on('connect', () => {
         if (this.debug) {

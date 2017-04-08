@@ -1,0 +1,31 @@
+{
+  "screen": {
+    "width": 1200,
+    "height": 675,
+    "fps": 50,
+    "fov": 60
+  },
+  "dust": {
+    "num": 50,
+    "speed": 2000
+  },
+  "music": {
+    "fade": 2000
+  },
+  "textures": {
+    "background": "stars",
+    "particle": "dot"
+  },
+  "socket": {
+    "enabled": false,
+    "url": "https://leap.dev:3001",
+    "rate": 2
+  },
+  "planet": {
+    "speed": 1000
+  },
+  "captions": {
+    "fade": 1000,
+    "show": 3000
+  }
+}

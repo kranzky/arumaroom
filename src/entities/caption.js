@@ -21,9 +21,6 @@ class Caption {
   }
 
   setMessage (message) {
-    if (this.text.visible) {
-      return
-    }
     this.text.alpha = 0
     this.text.visible = true
     this.text.text = message

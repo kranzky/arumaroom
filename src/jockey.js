@@ -25,6 +25,7 @@ class Jockey {
       }
     })
     this.track = null
+    this.trackName = null
     this.volume = 1
     this.filter = null
     this.frequency = 10000
@@ -35,11 +36,12 @@ class Jockey {
   }
 
   setTracks (tracks) {
+    let index = 0
     this.setlist = tracks
-    this.tracks = tracks.map((name) => {
+    this.tracks = tracks.map((track) => {
       return {
-        label: name,
-        value: name
+        label: track.name,
+        value: index++
       }
     })
   }
@@ -49,42 +51,38 @@ class Jockey {
   }
 
   nextTrack () {
-    let index = this.setlist.indexOf(this.track) + 1
+    let index = this.track ? this.track + 1 : 0
     if (index >= this.setlist.length) {
       index = 0
     }
-    this.setTrack(this.setlist[index])
+    this.setTrack(index)
   }
 
   prevTrack () {
-    let index = this.setlist.indexOf(this.track) - 1
+    let index = this.track ? this.track - 1 : -1
     if (index < 0) {
       index = this.setlist.length - 1
     }
-    this.setTrack(this.setlist[index])
+    this.setTrack(index)
   }
 
   randomTrack () {
     let index = Math.floor(Math.random() * this.setlist.length)
-    this.setTrack(this.setlist[index])
+    this.setTrack(index)
   }
 
-  setTrack (name) {
-    if (name === this.track || this.changing) {
+  setTrack (index) {
+    let name = this.setlist[index].name
+    if (name === this.trackName || this.changing) {
       return
     }
     this.changing = true
-    this.music[name] = new Howl({
-      src: [require(`assets/${name}.webm`), require(`assets/${name}.mp3`)],
-      loop: true,
-      html5: true
-    })
-    let track = name
-    this.music[name].on('load', (id) => {
-      this._loaded(track, id)
+    this.music[name] = new Howl({ src: this.setlist[index].url, loop: true, html5: true })
+    this.music[name].on('load', () => {
+      this._loaded(name, index)
     })
     this.music[name].on('fade', (id) => {
-      this._faded(track, id)
+      this._faded(name, id)
     })
   }
 
@@ -127,26 +125,28 @@ class Jockey {
     Howler.volume(this.volume)
   }
 
-  _loaded (name, id) {
-    if (this.playing) {
-      this.music[this.track].fade(1, 0, this.config.fade, this.playing)
-    }
+  _loaded (name, index) {
     let offset = 0
-    if (this.setlist.indexOf(this.track) >= 0) {
+    if (this.playing) {
+      console.debug('[music] fadeout', this.trackName)
+      this.music[this.trackName].fade(1, 0, this.config.fade, this.playing)
       offset = this.music[name].duration() * Math.random()
     }
-    this.playing = this.music[name].play()
     if (offset > 0) {
-      this.music[name].seek(offset, this.playing)
-      this.music[name].fade(0, 1, this.config.fade, this.playing)
+      this.music[name].seek(offset)
+      this.music[name].fade(0, 1, this.config.fade)
     }
-    this.track = name
+    console.debug('[music] play', name)
+    this.playing = this.music[name].play()
+    this.track = index
+    this.trackName = name
     this.changed = true
     this.changing = false
   }
 
   _faded (name, id) {
-    if (name !== this.track) {
+    if (name !== this.trackName && this.music[name]) {
+      console.debug('[music] stop', name)
       this.music[name].stop(id)
       this.music[name].unload()
       delete this.music[name]

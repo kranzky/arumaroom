@@ -25,7 +25,8 @@ const HAND = [
 class Room {
   constructor (elementId) {
     window.room = this
-    this.config = require('assets/config.json')
+    this.config = require('statics/config.json')
+    this.config.rooms = require('statics/rooms.json')
     this.ratio = this.config.screen.width / this.config.screen.height
     this.rooms = Object.keys(this.config.rooms).map((name) => {
       return {
@@ -71,7 +72,6 @@ class Room {
 
   init (data) {
     this.data = data
-    this.config.socket.url = null
     this.socket = new Socket(this.config.socket, this.data.debug)
     this.camera = new Camera(this.config.screen, this.data.debug)
     this.jockey = new Jockey(this.config.music, this.data.debug)
@@ -90,15 +90,15 @@ class Room {
 
   load (callback) {
     for (var pose of HAND) {
-      PIXI.loader.add(pose, require(`assets/${pose}.png`))
+      PIXI.loader.add(pose, `statics/${pose}.png`)
     }
     for (var name in this.config.textures) {
       let file = this.config.textures[name]
-      PIXI.loader.add(name, require(`assets/${file}.png`))
+      PIXI.loader.add(name, `statics/${file}.png`)
     }
     for (var room in this.config.rooms) {
-      let name = this.config.rooms[room].texture
-      PIXI.loader.add(name, require(`assets/${name}.png`))
+      let path = this.config.rooms[room].texture
+      PIXI.loader.add(room, path)
     }
     PIXI.loader.once('complete', () => {
       for (name in PIXI.loader.resources) {
@@ -189,7 +189,7 @@ class Room {
     }
     if (this.jockey.changed) {
       this.jockey.changed = false
-      this.entities['caption'].setMessage(this.jockey.track)
+      this.entities['caption'].setMessage(this.jockey.trackName)
     }
 
     if (this.room) {
@@ -472,9 +472,8 @@ class Room {
     this.entities['stars'] = new Stars(this.textures['background'])
     this.entities['stars'].add(this.world)
     for (var room in this.config.rooms) {
-      let name = this.config.rooms[room].texture
       let radius = this.config.rooms[room].radius
-      this.entities[room] = new Planet(room, this.textures[name], radius, this.config.planet, this.data.debug)
+      this.entities[room] = new Planet(room, this.textures[room], radius, this.config.planet, this.data.debug)
       this.entities[room].add(this.world, this.space)
     }
     for (var i = 0; i < this.config.dust.num; ++i) {
