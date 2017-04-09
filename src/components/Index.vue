@@ -7,6 +7,9 @@
       <q-toolbar-title class="text-center">
         Arumaroom
       </q-toolbar-title>
+      <button @click="toggleFullscreen">
+        <i>fullscreen</i>
+      </button>
       <button class="hide-on-drawer-visible" @click="$refs.rightDrawer.open()">
         <i>menu</i>
       </button>
@@ -183,7 +186,8 @@
   export default {
     data () {
       return {
-        debug: true,
+        debug: false,
+        fullscreen: false,
         hands: {
           left: {
             position: [0, 0, 0],
@@ -241,6 +245,23 @@
           })
         }
       },
+      toggleFullscreen () {
+        this.fullscreen = !this.fullscreen
+        let el = document.documentElement
+        if (this.fullscreen) {
+          let rfs = el.requestFullscreen ||
+            el.webkitRequestFullScreen ||
+            el.mozRequestFullScreen ||
+            el.msRequestFullscreen
+          rfs.call(el)
+        } else {
+          let rfs = document.exitFullscreen ||
+            document.webkitExitFullscreen ||
+            document.mozExitFullscreen ||
+            document.msExitFullscreen
+          rfs.call(document)
+        }
+      },
       teleport (value) { if (room) { room.setRoom(value) } },
       spell (value) { if (room) { room.magic = value / 1000 } },
       pan (value) { if (room) { room.camera.pan = value / 500 } },
@@ -260,6 +281,9 @@
         room.run()
         window.addEventListener('resize', this.size)
       })
+      if (DEV) {
+        this.debug = true
+      }
     },
     beforeDestroy () {
       window.removeEventListener('resize', this.size)
