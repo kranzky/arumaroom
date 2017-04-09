@@ -16,7 +16,9 @@
   },
   "textures": {
     "background": "stars",
-    "particle": "dot"
+    "particle": "dot",
+    "phone": "phone",
+    "tv": "tv"
   },
   "socket": {
     "rate": 10,

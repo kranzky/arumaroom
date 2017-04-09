@@ -17,6 +17,7 @@ import Stars from './entities/stars.js'
 import Planet from './entities/planet.js'
 import Dust from './entities/dust.js'
 import Caption from './entities/caption.js'
+import Phone from './entities/phone.js'
 
 const HAND = [
   'open',
@@ -50,6 +51,10 @@ class Room {
     this.data = null
     this.magic = 0.5
     this.inactive = 0
+  }
+
+  phone (message) {
+    this.entities['phone'].setMessage(message || "'Hello?'")
   }
 
   setRoom (room) {
@@ -499,6 +504,8 @@ class Room {
     this.entities['left'].add(this.world, this.space)
     this.entities['caption'] = new Caption(this.config.captions, this.data.debug)
     this.entities['caption'].add(this.world, this.space)
+    this.entities['phone'] = new Phone(this.textures['phone'], this.data.debug)
+    this.entities['phone'].add(this.world, this.space)
   }
 
   _loadRemoteMusic (url) {
