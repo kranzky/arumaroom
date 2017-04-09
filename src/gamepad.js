@@ -46,7 +46,6 @@ class Gamepad {
         right: false
       }
     }
-    this.mode = 'move'
   }
 
   scan () {

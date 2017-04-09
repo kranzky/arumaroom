@@ -18,9 +18,7 @@ class Socket {
 
   // buffer up all of the sends
   send (event, data) {
-    if (data) {
-      this.payload[event] = data
-    }
+    this.payload[event] = data
   }
 
   // only process the buffered data twice a second

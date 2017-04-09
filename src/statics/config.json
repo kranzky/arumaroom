@@ -19,7 +19,7 @@
     "particle": "dot"
   },
   "socket": {
-    "rate": 2,
+    "rate": 10,
     "url": "https://leap.dev:3001",
     "connect": false
   },

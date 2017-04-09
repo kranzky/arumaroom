@@ -229,6 +229,12 @@ class Room {
       this.entities['caption'].setMessage('Attract Mode')
     }
 
+    if (this.magic > 1) {
+      this.magic = 1
+    } else if (this.magic < 0) {
+      this.magic = 0
+    }
+
     this.inactive += dt
   }
 
@@ -236,6 +242,140 @@ class Room {
     let left = this.entities.left
     let right = this.entities.right
 
+    // open hands and tilt in opposite directions to rotate camera
+    if (!left.pose && !right.pose) {
+      let spin = (left.rotation[0] - right.rotation[0])
+      spin *= Math.abs(spin)
+      spin *= Math.abs(spin)
+      spin /= 10
+      if (Math.abs(spin) > 0.0003) {
+        this.camera.spin = spin
+      }
+    }
+
+    // grab with both hands to fly
+    if (left.pose === 'grab' && right.pose === 'grab') {
+      let position = 0.5 * (left.position[0] + right.position[0])
+      if (this.values.pan) {
+        this.camera.pan = this.values.pan - position
+        this.camera.pan /= 100
+        this.camera.pan *= Math.abs(this.camera.pan)
+      } else {
+        this.values.pan = position
+      }
+      position = 0.5 * (left.position[2] + right.position[2])
+      if (this.values.tilt) {
+        this.camera.tilt = position - this.values.tilt
+        this.camera.tilt /= 100
+        this.camera.tilt *= Math.abs(this.camera.tilt)
+      } else {
+        this.values.tilt = position
+      }
+    } else {
+      this.values.pan = null
+      this.values.tilt = null
+    }
+    // pinch with left hand to change magic
+    if (left.pose === 'pinch') {
+      let leftWidth = left.position[0]
+      let leftDepth = left.position[2]
+      if (this.values.leftWidth && this.values.leftDepth) {
+        let diff = leftWidth - this.values.leftWidth + leftDepth - this.values.leftDepth
+        this.magic = this.values.magic + diff / 100
+      } else {
+        this.values.magic = this.magic
+        this.values.leftWidth = leftWidth
+        this.values.leftDepth = leftDepth
+      }
+    } else {
+      this.values.magic = null
+      this.values.leftWidth = null
+      this.values.leftDepth = null
+    }
+    // pinch with right hand to change audio filter
+    if (right.pose === 'pinch') {
+      let rightWidth = right.position[0]
+      let rightDepth = right.position[2]
+      if (this.values.rightWidth) {
+        let diff = rightWidth - this.values.rightWidth
+        this.jockey.frequency = this.values.frequency + diff / 100
+      } else {
+        this.values.frequency = this.jockey.frequency
+        this.values.rightWidth = rightWidth
+      }
+      if (this.values.rightDepth) {
+        let diff = this.values.rightDepth - rightDepth
+        this.jockey.quality = this.values.quality + diff / 100
+      } else {
+        this.values.quality = this.jockey.quality
+        this.values.rightDepth = rightDepth
+      }
+    } else {
+      this.values.frequency = null
+      this.values.quality = null
+      this.values.rightWidth = null
+      this.values.rightDepth = null
+    }
+
+    // move left stick to rotate and zoom
+    if (Math.abs(this.gamepad.stick.left[0]) > 0.01) {
+      this.camera.spin = -this.gamepad.stick.left[0]
+      this.inactive = 0
+    }
+    if (Math.abs(this.gamepad.stick.left[1]) > 0.01) {
+      this.camera.zoom = -this.gamepad.stick.left[1]
+      this.inactive = 0
+    }
+    // move right stick to pan and tilt
+    if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
+      this.camera.pan = -this.gamepad.stick.right[0]
+      this.inactive = 0
+    }
+    if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
+      this.camera.tilt = -this.gamepad.stick.right[1]
+      this.inactive = 0
+    }
+    // shoulder buttons to move between rooms
+    if (this.gamepad.pressed.shoulder.left) {
+      this.prevRoom()
+    }
+    if (this.gamepad.pressed.shoulder.right) {
+      this.nextRoom()
+    }
+    // x button to play a random track
+    if (this.gamepad.pressed.buttons.b) {
+      this.jockey.randomTrack()
+    }
+    // trigger buttons to change audio filter
+    if (this.gamepad.trigger.left > 0) {
+      this.jockey.frequency -= this.gamepad.trigger.left * dt * 0.3
+    }
+    if (this.gamepad.trigger.right > 0) {
+      this.jockey.frequency += this.gamepad.trigger.right * dt * 0.3
+    }
+    // dpad to change magic
+    if (this.gamepad.dpad.right) {
+      this.magic += 0.1 * dt
+    }
+    if (this.gamepad.dpad.left) {
+      this.magic -= 0.1 * dt
+    }
+    if (this.gamepad.pressed.dpad.up) {
+      this.magic = 1
+    }
+    if (this.gamepad.pressed.dpad.down) {
+      this.magic = 0
+    }
+    // back to toggle debug mode
+    if (this.gamepad.pressed.back) {
+      this.data.debug = !this.data.debug
+    }
+    // start to do a browser reload
+    if (this.gamepad.pressed.start) {
+      location.reload()
+    }
+
+    // the attract mode takes over after 5 minutes of no activity
     if (this.autopilot.enabled) {
       if (Math.abs(this.autopilot.stick.left[0]) > 0.01) {
         this.camera.spin = -this.autopilot.stick.left[0]
@@ -260,209 +400,6 @@ class Room {
       if (this.autopilot.click) {
         this.nextRoom()
       }
-    }
-
-    // open hands and tilt in opposite directions to rotate camera
-    if (!left.pose && !right.pose) {
-      let spin = (left.rotation[0] - right.rotation[0])
-      spin *= Math.abs(spin)
-      spin *= Math.abs(spin)
-      spin /= 30
-      if (Math.abs(spin) > 0.0003) {
-        this.camera.spin = spin
-      }
-    }
-    // move left stick to rotate camera
-    if (this.gamepad.mode === 'move' && Math.abs(this.gamepad.stick.left[0]) > 0.01) {
-      this.camera.spin = -this.gamepad.stick.left[0]
-      this.inactive = 0
-    }
-
-    // pinch with both hands to zoom in and out
-    if (left.pose === 'pinch' && right.pose === 'pinch') {
-      let distance = (left.position[0] - right.position[0])
-      if (this.values.zoom) {
-        this.camera.zoom = this.values.zoom - distance
-        this.camera.zoom /= 100
-        this.camera.zoom *= Math.abs(this.camera.zoom)
-      } else {
-        this.values.zoom = distance
-      }
-    } else {
-      this.values.zoom = null
-    }
-    // move left stick to zoom camera
-    if (this.gamepad.mode === 'move' && Math.abs(this.gamepad.stick.left[1]) > 0.01) {
-      this.camera.zoom = -this.gamepad.stick.left[1]
-      this.inactive = 0
-    }
-
-    // grab with both hands to pan around
-    if (left.pose === 'grab' && right.pose === 'grab') {
-      let position = 0.5 * (left.position[0] + right.position[0])
-      if (this.values.pan) {
-        this.camera.pan = position - this.values.pan
-        this.camera.pan /= 100
-        this.camera.pan *= Math.abs(this.camera.pan)
-      } else {
-        this.values.pan = position
-      }
-      position = 0.5 * (left.position[2] + right.position[2])
-      if (this.values.tilt) {
-        this.camera.tilt = position - this.values.tilt
-        this.camera.tilt /= 100
-        this.camera.tilt *= Math.abs(this.camera.tilt)
-      } else {
-        this.values.tilt = position
-      }
-    } else {
-      this.values.pan = null
-      this.values.tilt = null
-    }
-    // move right stick to pan around
-    if (this.gamepad.mode === 'move') {
-      if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
-        this.camera.pan = -this.gamepad.stick.right[0]
-        this.inactive = 0
-      }
-      if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
-        this.camera.tilt = -this.gamepad.stick.right[1]
-        this.inactive = 0
-      }
-    } else {
-      if (this.gamepad.pressed.buttons.x) {
-        left.alive = true
-        if (left.grab > 0.5) {
-          left.grab = 0
-          left.pinch = 1
-        } else if (left.pinch > 0.5) {
-          left.grab = 0
-          left.pinch = 0
-        } else {
-          left.grab = 1
-          left.pinch = 0
-        }
-      }
-      if (Math.abs(this.gamepad.stick.left[0]) > 0.01) {
-        left.alive = true
-        left.position[0] += this.gamepad.stick.left[0] * 300 * dt
-        this.inactive = 0
-      }
-      if (Math.abs(this.gamepad.stick.left[1]) > 0.01) {
-        left.alive = true
-        left.position[2] += this.gamepad.stick.left[1] * 300 * dt
-        this.inactive = 0
-      }
-      if (this.gamepad.pressed.buttons.b) {
-        right.alive = true
-        if (right.grab > 0.5) {
-          right.grab = 0
-          right.pinch = 1
-        } else if (right.pinch > 0.5) {
-          right.grab = 0
-          right.pinch = 0
-        } else {
-          right.grab = 1
-          right.pinch = 0
-        }
-      }
-      if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
-        right.alive = true
-        right.position[0] += this.gamepad.stick.right[0] * 300 * dt
-        this.inactive = 0
-      }
-      if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
-        right.alive = true
-        right.position[2] += this.gamepad.stick.right[1] * 300 * dt
-        this.inactive = 0
-      }
-    }
-
-    // grab with left hand and pinch with right hand to change volume,
-    // frequency and quality
-    if (left.pose === 'grab' && right.pose === 'pinch') {
-      let height = right.position[1]
-      let width = right.position[0]
-      let depth = right.position[2]
-      if (this.values.height) {
-        let diff = height - this.values.height
-        diff /= 100
-        this.jockey.volume = this.values.volume + diff
-      } else {
-        this.values.volume = this.jockey.volume
-        this.values.height = height
-      }
-      if (this.values.width) {
-        let diff = width - this.values.width
-        diff *= 100
-        this.jockey.frequency = this.values.frequency + diff
-      } else {
-        this.values.frequency = this.jockey.frequency
-        this.values.width = width
-      }
-      if (this.values.depth) {
-        let diff = depth - this.values.depth
-        diff /= 10
-        this.jockey.quality = this.values.quality + diff
-      } else {
-        this.values.quality = this.jockey.quality
-        this.values.depth = depth
-      }
-    } else {
-      this.values.volume = null
-      this.values.frequency = null
-      this.values.quality = null
-      this.values.height = null
-      this.values.width = null
-      this.values.depth = null
-    }
-
-    // grab with left hand and circle with right hand to change track, or
-    // tap with right hand to change filter
-    if (left.pose === 'grab' && !right.pose) {
-      if (right.gesture === 'circle') {
-        this.jockey.nextTrack()
-        right.gesture = null
-      }
-      if (right.gesture === 'tap') {
-        this.jockey.nextFilter()
-        right.gesture = null
-      }
-    }
-
-    if (this.gamepad.trigger.left > 0) {
-      this.jockey.frequency = this.gamepad.trigger.left
-    }
-    if (this.gamepad.trigger.right > 0) {
-      this.magic = this.gamepad.trigger.right
-    }
-
-    if (this.gamepad.pressed.buttons.a) {
-      if (this.gamepad.mode === 'move') {
-        this.gamepad.mode = 'wave'
-      } else {
-        this.gamepad.mode = 'move'
-      }
-    }
-
-    if (this.gamepad.pressed.shoulder.left) {
-      this.prevRoom()
-    }
-    if (this.gamepad.pressed.shoulder.right) {
-      this.nextRoom()
-    }
-    if (this.gamepad.pressed.dpad.left) {
-      this.jockey.prevTrack()
-    }
-    if (this.gamepad.pressed.dpad.right) {
-      this.jockey.nextTrack()
-    }
-
-    if (this.gamepad.pressed.back) {
-      this.data.debug = !this.data.debug
-    }
-    if (this.gamepad.pressed.start) {
-      location.reload()
     }
   }
 

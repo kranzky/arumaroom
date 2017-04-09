@@ -61,6 +61,9 @@ class Jockey {
   }
 
   randomTrack () {
+    if (this.setlist.length === 0) {
+      return
+    }
     let index = Math.floor(Math.random() * this.setlist.length)
     this.setTrack(index)
   }
