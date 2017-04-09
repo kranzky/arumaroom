@@ -9,6 +9,9 @@ class Dust {
     this.trails = new Trails(texture)
     this.trails.emitter.maxParticles = 0
     this.trails.emitterContainer.visible = false
+    this.trails.emitter.startColor[0] = 128 * Math.random() + 128
+    this.trails.emitter.startColor[1] = 128 * Math.random() + 128
+    this.trails.emitter.startColor[2] = 128 * Math.random() + 128
   }
 
   update (dt, camera, debug) {

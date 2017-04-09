@@ -10,6 +10,7 @@ import Socket from './socket'
 import Camera from './camera.js'
 import Jockey from './jockey.js'
 import Gamepad from './gamepad.js'
+import Autopilot from './autopilot.js'
 
 import Hand from './entities/hand.js'
 import Stars from './entities/stars.js'
@@ -48,6 +49,7 @@ class Room {
     this.values = {}
     this.data = null
     this.magic = 0.5
+    this.inactive = 0
   }
 
   setRoom (room) {
@@ -81,6 +83,7 @@ class Room {
     this.camera = new Camera(this.config.screen, this.data.debug)
     this.jockey = new Jockey(this.config.music, this.data.debug)
     this.gamepad = new Gamepad()
+    this.autopilot = new Autopilot()
     this.engine = new PIXI.Application(this.config.screen.width, this.config.screen.height, { view: this.canvas })
     this.world = new PIXI.Container()
     this.bloom = new PIXI.filters.BloomFilter()
@@ -148,6 +151,7 @@ class Room {
       if (hand.valid && hand.confidence > 0.2) {
         let entity = this.entities[hand.type]
         entity.leap(hand, frame.gestures)
+        this.inactive = 0
       }
     })
   }
@@ -182,7 +186,7 @@ class Room {
 
     for (var id in this.entities) {
       this.entities[id].update(dt, this.camera, this.data.debug)
-      if (this.entities[id].collided) {
+      if (this.entities[id].collided && !this.autopilot.enabled) {
         this.entities[id].collided = false
         this.setRoom(this.entities[id].name)
         this.shock.radius = 300
@@ -194,6 +198,7 @@ class Room {
 
     this.camera.update(dt)
     this.jockey.update(dt)
+    this.autopilot.update(dt)
 
     if (this.game_time <= 3 && this.game_time + dt > 3) {
       this.entities['caption'].setMessage('Aruma Room')
@@ -215,11 +220,47 @@ class Room {
     if (this.data.debug) {
       this.debug(dt)
     }
+
+    if (this.autopilot.enabled && this.inactive === 0) {
+      this.autopilot.enabled = false
+    }
+    if (!this.autopilot.enabled && this.inactive > 300) {
+      this.autopilot.enabled = true
+      this.entities['caption'].setMessage('Attract Mode')
+    }
+
+    this.inactive += dt
   }
 
   control (dt) {
     let left = this.entities.left
     let right = this.entities.right
+
+    if (this.autopilot.enabled) {
+      if (Math.abs(this.autopilot.stick.left[0]) > 0.01) {
+        this.camera.spin = -this.autopilot.stick.left[0]
+      }
+      if (Math.abs(this.autopilot.stick.left[1]) > 0.01) {
+        this.camera.zoom = -this.autopilot.stick.left[1]
+      }
+      if (Math.abs(this.autopilot.stick.right[0]) > 0.01) {
+        this.camera.pan = -this.autopilot.stick.right[0]
+      }
+      if (Math.abs(this.autopilot.stick.right[1]) > 0.01) {
+        this.camera.tilt = -this.autopilot.stick.right[1]
+      }
+      left.position[0] = this.autopilot.hand.left[0] * 100
+      left.position[1] = 100
+      left.position[2] = this.autopilot.hand.left[1] * 100
+      right.position[0] = this.autopilot.hand.right[0] * 100
+      right.position[1] = 100
+      right.position[2] = this.autopilot.hand.right[1] * 100
+      left.alive = true
+      right.alive = true
+      if (this.autopilot.click) {
+        this.nextRoom()
+      }
+    }
 
     // open hands and tilt in opposite directions to rotate camera
     if (!left.pose && !right.pose) {
@@ -234,6 +275,7 @@ class Room {
     // move left stick to rotate camera
     if (this.gamepad.mode === 'move' && Math.abs(this.gamepad.stick.left[0]) > 0.01) {
       this.camera.spin = -this.gamepad.stick.left[0]
+      this.inactive = 0
     }
 
     // pinch with both hands to zoom in and out
@@ -252,6 +294,7 @@ class Room {
     // move left stick to zoom camera
     if (this.gamepad.mode === 'move' && Math.abs(this.gamepad.stick.left[1]) > 0.01) {
       this.camera.zoom = -this.gamepad.stick.left[1]
+      this.inactive = 0
     }
 
     // grab with both hands to pan around
@@ -280,9 +323,11 @@ class Room {
     if (this.gamepad.mode === 'move') {
       if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
         this.camera.pan = -this.gamepad.stick.right[0]
+        this.inactive = 0
       }
       if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
         this.camera.tilt = -this.gamepad.stick.right[1]
+        this.inactive = 0
       }
     } else {
       if (this.gamepad.pressed.buttons.x) {
@@ -301,10 +346,12 @@ class Room {
       if (Math.abs(this.gamepad.stick.left[0]) > 0.01) {
         left.alive = true
         left.position[0] += this.gamepad.stick.left[0] * 300 * dt
+        this.inactive = 0
       }
       if (Math.abs(this.gamepad.stick.left[1]) > 0.01) {
         left.alive = true
         left.position[2] += this.gamepad.stick.left[1] * 300 * dt
+        this.inactive = 0
       }
       if (this.gamepad.pressed.buttons.b) {
         right.alive = true
@@ -322,10 +369,12 @@ class Room {
       if (Math.abs(this.gamepad.stick.right[0]) > 0.01) {
         right.alive = true
         right.position[0] += this.gamepad.stick.right[0] * 300 * dt
+        this.inactive = 0
       }
       if (Math.abs(this.gamepad.stick.right[1]) > 0.01) {
         right.alive = true
         right.position[2] += this.gamepad.stick.right[1] * 300 * dt
+        this.inactive = 0
       }
     }
 
