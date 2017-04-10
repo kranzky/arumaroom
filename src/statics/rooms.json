@@ -1,6 +1,6 @@
 {
   "water": {
-    "texture": "statics/blue_planet.png",
+    "texture": "statics/planets/water.png",
     "radius": 800,
     "tracks": [
       {
@@ -11,7 +11,7 @@
   },
   "fire": {
     "radius": 2000,
-    "texture": "statics/yellow_planet.png",
+    "texture": "statics/planets/fire.png",
     "tracks": [
       {
         "name": "Dubstep",
@@ -24,7 +24,7 @@
     ]
   },
   "earth": {
-    "texture": "statics/purple_planet.png",
+    "texture": "statics/planets/earth.png",
     "radius": 500,
     "tracks": [
       {
@@ -38,7 +38,7 @@
     ]
   },
   "air": {
-    "texture": "statics/green_planet.png",
+    "texture": "statics/planets/air.png",
     "radius": 1000,
     "tracks": [
       {
