@@ -9,7 +9,7 @@ class Hand {
     this.sprite.anchor.x = 0.5
     this.sprite.anchor.y = 0.5
     this.sprite.alpha = 0.5
-    this.position = [100, 200, 100]
+    this.position = [100, 200, 0]
     this.rotation = [0, 0, 0]
     this.pinch = 0
     this.grab = 0
@@ -138,7 +138,7 @@ class Hand {
         this.position[0] += (100 - this.position[0]) * dt
       }
       this.position[1] += (200 - this.position[1]) * dt
-      this.position[2] += (100 - this.position[2]) * dt
+      this.position[2] += -this.position[2] * dt
     }
     this.alive *= 0.99
     this.sprite.visible = debug

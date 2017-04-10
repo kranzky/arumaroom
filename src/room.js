@@ -265,38 +265,34 @@ class Room {
     let left = this.entities.left
     let right = this.entities.right
 
-    // open hands and tilt in opposite directions to rotate camera
-    if (!left.pose && !right.pose) {
-      let spin = (left.rotation[0] - right.rotation[0])
-      spin *= Math.abs(spin)
-      spin *= Math.abs(spin)
-      spin /= 10
-      if (Math.abs(spin) > 0.0003) {
-        this.camera.spin = spin
+    // move hands around to pan, tilt and zoom
+    if (!this.autopilot.enabled) {
+      let diff = [this.entities.right.position[0] - this.entities.left.position[0], this.entities.right.position[1] - this.entities.left.position[1], this.entities.right.position[2] - this.entities.left.position[2]]
+      let mid = [0.5 * (this.entities.right.position[0] + this.entities.left.position[0]), 0.5 * (this.entities.right.position[1] + this.entities.left.position[1]), 0.5 * (this.entities.right.position[2] + this.entities.left.position[2])]
+      let speed = [0, 0, 0]
+      if (Math.abs(diff[1]) < 60) {
+        if (Math.abs(mid[0]) > 20) {
+          speed[0] = mid[0] / 100
+        }
+        let limit = (150 - mid[2])
+        if (mid[1] < limit) {
+          speed[1] = (limit - mid[1]) / 100
+        }
+        limit = (250 - mid[2])
+        if (mid[1] > limit) {
+          speed[1] = (limit - mid[1]) / 100
+        }
+        if (Math.abs(mid[2]) > 20) {
+          speed[2] = mid[2] / 100
+        }
       }
-    }
-
-    // grab with both hands to fly
-    if (left.pose === 'grab' && right.pose === 'grab') {
-      let position = 0.5 * (left.position[0] + right.position[0])
-      if (this.values.pan) {
-        this.camera.pan = this.values.pan - position
-        this.camera.pan /= 100
-        this.camera.pan *= Math.abs(this.camera.pan)
-      } else {
-        this.values.pan = position
+      this.camera.pan = -speed[0]
+      this.camera.zoom = speed[1]
+      this.camera.tilt = -speed[2]
+      if (diff[0] !== 0) {
+        let angle = -Math.atan(diff[2] / diff[0]) / 10
+        this.camera.spin = angle
       }
-      position = 0.5 * (left.position[2] + right.position[2])
-      if (this.values.tilt) {
-        this.camera.tilt = position - this.values.tilt
-        this.camera.tilt /= 100
-        this.camera.tilt *= Math.abs(this.camera.tilt)
-      } else {
-        this.values.tilt = position
-      }
-    } else {
-      this.values.pan = null
-      this.values.tilt = null
     }
     // pinch with left hand to change magic
     if (left.pose === 'pinch') {
@@ -314,6 +310,10 @@ class Room {
       this.values.magic = null
       this.values.leftWidth = null
       this.values.leftDepth = null
+    }
+    // grab with left hand to reset magic
+    if (left.pose === 'grab') {
+      this.magic = 0.5
     }
     // pinch with right hand to change audio filter
     if (right.pose === 'pinch') {
@@ -338,6 +338,11 @@ class Room {
       this.values.quality = null
       this.values.rightWidth = null
       this.values.rightDepth = null
+    }
+    // grab with right hand to reset audio filter
+    if (right.pose === 'grab') {
+      this.jockey.frequency = 0
+      this.jockey.quality = 0.5
     }
 
     // move left stick to rotate and zoom
