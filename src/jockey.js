@@ -96,11 +96,11 @@ class Jockey {
         this.preload = null
         this.preload_id = null
       }
-    console.debug('[music] loading', this.setlist[index].url)
-    this.music[name] = new Howl({ src: this.setlist[index].url, loop: true })
-    this.music[name].on('load', () => {
-      this._loaded(name, index)
-    })
+      console.debug('[music] loading', this.setlist[index].url)
+      this.music[name] = new Howl({ src: this.setlist[index].url, loop: true })
+      this.music[name].on('load', () => {
+        this._loaded(name, index)
+      })
     }
     this.music[name].on('fade', (id) => {
       this._faded(name, id)
