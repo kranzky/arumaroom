@@ -517,8 +517,8 @@ class Room {
       }
     }
     axios.get(url, options).then(response => {
-      for (var room in response.data) {
-        this.config.rooms[room].tracks = response.data[room]
+      for (var room in this.config.rooms) {
+        this.config.rooms[room].tracks = response.data
       }
     })
   }
