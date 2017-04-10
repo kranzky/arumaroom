@@ -21,6 +21,7 @@ class Socket {
         console.debug('video has been created')
         var video = data.video
         window.room.data.videos.unshift(video)
+        window.room.tv()
       })
       this.io.on('phones:created', (data) => {
         console.debug('phone has been created')

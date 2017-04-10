@@ -21,6 +21,10 @@ class Jockey {
 //  Howler.masterGain.disconnect(Howler.ctx.destination)
     Howler.masterGain.connect(this.effect)
     this.effect.connect(Howler.ctx.destination)
+    // this.analyser = Howler.ctx.createAnalyser()
+    // Howler.masterGain.connect(this.analyser)
+    // this.analyser.connect(Howler.ctx.destination)
+    // analyser.getByteTimeDomainData(dataArray)
   }
 
   setTracks (tracks) {
@@ -123,6 +127,7 @@ class Jockey {
     this.playing = this.music[name].play()
     this.track = index
     this.trackName = name
+    window.room.video.record()
   }
 
   _faded (name, id) {

@@ -9,7 +9,7 @@ class Video {
     this.recordAudio = null
     this.recordVideo = null
     this.tick = 0
-    this.length = 2000
+    this.length = 6000
     window.video = this
     this.preview = document.getElementById('video')
     if (this.socket.config.connect) {
@@ -47,7 +47,7 @@ class Video {
     console.log('on stream fce')
     this.preview.src = window.URL.createObjectURL(window.stream)
     this.preview.play()
-    this.preview.muted = true
+    // this.preview.muted = true
     console.log('got new scream')
     this.timer(true)
     this.start()
@@ -74,7 +74,7 @@ class Video {
         window.video.webcamnOff()
         var formData = new FormData()
         formData.append('filename', fileName)
-        formData.append('audio-blob', window.video.recordAudio.getBlob())
+        // formData.append('audio-blob', window.video.recordAudio.getBlob())
         formData.append('video-blob', window.video.recordVideo.getBlob())
         window.video.xhr(window.video.config.url + '/video/store', formData, function (result) {
           console.log('saving video')
