@@ -25,6 +25,9 @@ class Jockey {
     // Howler.masterGain.connect(this.analyser)
     // this.analyser.connect(Howler.ctx.destination)
     // analyser.getByteTimeDomainData(dataArray)
+    this.loading = false
+    this.preload = null
+    this.preload_id = null
   }
 
   setTracks (tracks) {
@@ -36,6 +39,7 @@ class Jockey {
         value: index++
       }
     })
+    this._preload()
   }
 
   fini () {
@@ -68,21 +72,36 @@ class Jockey {
     if (this.setlist.length === 0) {
       return
     }
-    let index = Math.floor(Math.random() * this.setlist.length)
-    this.setTrack(index)
+    if (this.preload) {
+      this.setTrack(this.preload_id)
+    }
   }
 
   setTrack (index) {
     let name = this.setlist[index].name
-    if (name === this.trackName || this.changing) {
+    if (name === this.trackname || this.changing || this.loading) {
       return
     }
     this.changing = true
+    if (index === this.preload_id) {
+      console.debug('[music] using preloaded track')
+      this.music[name] = this.preload
+      this.preload = null
+      this.preload_id = null
+      this._loaded(name, index)
+    } else {
+      if (this.preload) {
+        console.debug('[music] flushing preloaded track')
+        delete this.preload
+        this.preload = null
+        this.preload_id = null
+      }
     console.debug('[music] loading', this.setlist[index].url)
     this.music[name] = new Howl({ src: this.setlist[index].url, loop: true })
     this.music[name].on('load', () => {
       this._loaded(name, index)
     })
+    }
     this.music[name].on('fade', (id) => {
       this._faded(name, id)
     })
@@ -110,6 +129,10 @@ class Jockey {
   }
 
   _loaded (name, index) {
+    if (this.preloading) {
+      this.preloading = false
+      return
+    }
     let offset = 0
     if (this.playing) {
       console.debug('[music] fadeout', this.trackName)
@@ -127,7 +150,7 @@ class Jockey {
     this.playing = this.music[name].play()
     this.track = index
     this.trackName = name
-    window.room.video.record()
+    this._preload()
   }
 
   _faded (name, id) {
@@ -138,6 +161,7 @@ class Jockey {
       delete this.music[name]
       this.changed = true
       this.changing = false
+      this._preload()
     }
   }
 
@@ -147,6 +171,34 @@ class Jockey {
     let numberOfOctaves = Math.log(maxValue / minValue) / Math.LN2
     let multiplier = Math.pow(2, numberOfOctaves * (this.frequency - 1.0))
     this.effect.frequency.value = maxValue * multiplier
+  }
+
+  _preload () {
+    if (this.loading || this.changing || this.preload_id) {
+      return
+    }
+    this.loading = true
+    let index = Math.floor(Math.random() * this.setlist.length)
+    let name = this.setlist[index].name
+    if (name === this.trackname) {
+      index += 1
+      if (index >= this.setlist.length) {
+        index = 0
+      }
+    }
+    console.debug('[music] pre-loading', this.setlist[index].url)
+    this.preload = new Howl({ src: this.setlist[index].url, loop: true })
+    this.preload_id = index
+    this.preload.on('loaderror', (id, message) => {
+      this.loading = false
+      this.preload = null
+      this.preload_id = null
+      console.debug('[music] pre-load error', message)
+    })
+    this.preload.on('load', () => {
+      this.loading = false
+      console.debug('[music] pre-loaded', name)
+    })
   }
 }
 

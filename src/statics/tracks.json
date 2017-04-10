@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Funky Suspense",
+    "url": "statics/bensound-funkysuspense.webm"
+  },
+  {
+    "name": "Dubstep",
+    "url": "statics/bensound-dubstep.webm"
+  },
+  {
+    "name": "Moose",
+    "url": "statics/bensound-moose.webm"
+  },
+  {
+    "name": "Little Planet",
+    "url": "statics/bensound-littleplanet.webm"
+  },
+  {
+    "name": "Going Higher",
+    "url": "statics/bensound-goinghigher.webm"
+  },
+  {
+    "name": "Acoustic Breeze",
+    "url": "statics/bensound-acousticbreeze.webm"
+  },
+  {
+    "name": "Cute",
+    "url": "statics/bensound-cute.webm"
+  },
+  {
+    "name": "Happiness",
+    "url": "statics/bensound-happiness.webm"
+  }
+]

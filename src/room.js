@@ -71,9 +71,9 @@ class Room {
 
   setRoom (room) {
     this.room = room
-    this.jockey.setTracks(this.config.rooms[room].tracks)
     this.jockey.randomTrack()
     this.socket.send('room', this.room)
+    this.video.record()
   }
 
   nextRoom () {
@@ -531,9 +531,7 @@ class Room {
       }
     }
     axios.get(url, options).then(response => {
-      for (var room in this.config.rooms) {
-        this.config.rooms[room].tracks = response.data
-      }
+      this.jockey.setTracks(response.data)
     })
   }
 }
