@@ -11,6 +11,7 @@ import Camera from './camera.js'
 import Jockey from './jockey.js'
 import Gamepad from './gamepad.js'
 import Autopilot from './autopilot.js'
+import Video from './video.js'
 
 import Hand from './entities/hand.js'
 import Stars from './entities/stars.js'
@@ -18,7 +19,7 @@ import Planet from './entities/planet.js'
 import Dust from './entities/dust.js'
 import Caption from './entities/caption.js'
 import Phone from './entities/phone.js'
-import Video from './entities/video.js'
+import Television from './entities/television.js'
 
 const HAND = [
   'open',
@@ -56,6 +57,17 @@ class Room {
 
   phone (message) {
     this.entities['phone'].setMessage(message || "'Hello?'")
+  }
+
+  tv () {
+    if (this.data.videos.length === 0) {
+      return
+    }
+    let index = Math.floor(Math.random() * this.data.videos.length)
+    let url = this.data.videos[index].url
+    url = 'statics/43.mp4'
+    console.debug('[video]', url)
+    this.entities['tv'].playVideo(url)
   }
 
   setRoom (room) {
@@ -508,6 +520,8 @@ class Room {
     this.entities['caption'].add(this.world, this.space)
     this.entities['phone'] = new Phone(this.textures['phone'], this.data.debug)
     this.entities['phone'].add(this.world, this.space)
+    this.entities['tv'] = new Television(this.textures['tv'], this.data.debug)
+    this.entities['tv'].add(this.world, this.space)
   }
 
   _loadRemoteMusic (url) {
