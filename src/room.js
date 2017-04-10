@@ -60,7 +60,7 @@ class Room {
   }
 
   tv () {
-    if (this.data.videos.length === 0) {
+    if (this.config.video.connect === false || this.data.videos.length === 0) {
       return
     }
     let index = Math.floor(Math.random() * this.data.videos.length)
@@ -73,7 +73,9 @@ class Room {
     this.room = room
     this.jockey.randomTrack()
     this.socket.send('room', this.room)
-    this.video.record()
+    if (this.config.video.connect) {
+      this.video.record()
+    }
   }
 
   nextRoom () {
@@ -115,6 +117,9 @@ class Room {
     this.space = new PIXI.DisplayGroup(0, true)
     this.engine.stage.filters = [this.bloom, this.shock]
     this.size()
+    if (!this.config.music.connect) {
+      this.jockey.setTracks(require('statics/tracks.json'))
+    }
     this.ready = true
   }
 
