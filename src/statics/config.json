@@ -12,7 +12,11 @@
   "music": {
     "fade": 2000,
     "url": "https://aruma.cervenka.space/music",
-    "connect": false
+    "connect": true
+  },
+  "video": {
+    "url": "https://aruma.cervenka.space/",
+    "connect": true
   },
   "textures": {
     "background": "stars",
@@ -22,8 +26,8 @@
   },
   "socket": {
     "rate": 10,
-    "url": "https://leap.dev:3001",
-    "connect": false
+    "url": "https://aruma.cervenka.space/socket.io",
+    "connect": true
   },
   "planet": {
     "speed": 1000

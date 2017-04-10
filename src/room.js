@@ -18,6 +18,7 @@ import Planet from './entities/planet.js'
 import Dust from './entities/dust.js'
 import Caption from './entities/caption.js'
 import Phone from './entities/phone.js'
+import Video from './entities/video.js'
 
 const HAND = [
   'open',
@@ -87,6 +88,7 @@ class Room {
     this.socket = new Socket(this.config.socket, this.data.debug)
     this.camera = new Camera(this.config.screen, this.data.debug)
     this.jockey = new Jockey(this.config.music, this.data.debug)
+    this.video = new Video(this.socket, this.config.video)
     this.gamepad = new Gamepad()
     this.autopilot = new Autopilot()
     this.engine = new PIXI.Application(this.config.screen.width, this.config.screen.height, { view: this.canvas })

@@ -104,6 +104,19 @@
       </div>
       <div class="card">
         <div class="list item-delimiter">
+          <q-collapsible opened icon="videocam" label="Video">
+            <div class="list">
+              <div class="item two-lines">
+                <i class="item-primary">fiber_manual_record</i>
+                <div class="item-content">
+                  <button class="info" @click="record()">
+                    Record Video
+                  </button>
+                </div>
+                <video muted id="video" width="200" height="60"></video>
+              </div>
+            </div>
+          </q-collapsible>
           <q-collapsible opened icon="terrain" label="Room">
             <div class="list">
               <div class="item two-lines">
@@ -229,7 +242,8 @@
           track: null,
           volume: 0,
           frequency: 0
-        }
+        },
+        videos: []
       }
     },
     watch: {
@@ -270,7 +284,9 @@
       zoom (value) { if (room) { room.camera.zoom = value / 500 } },
       volume (value) { if (room) { room.jockey.volume = value / 1000 } },
       track (value) { if (room) { room.jockey.setTrack(value) } },
-      frequency (value) { if (room) { room.jockey.frequency = value / 1000 } }
+      frequency (value) { if (room) { room.jockey.frequency = value / 1000 } },
+      record () { if (room) { room.video.record() } },
+      playVideo (video) { if (room) { room.video.play(video) } }
     },
     mounted () {
       Loading.show()
