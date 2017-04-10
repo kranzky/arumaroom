@@ -300,6 +300,11 @@
       if (DEV) {
         this.debug = true
       }
+      if (room.video.config.connect) {
+        room.video.list(function (videos) {
+          room.data.videos = videos
+        })
+      }
     },
     beforeDestroy () {
       window.removeEventListener('resize', this.size)
