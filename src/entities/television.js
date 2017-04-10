@@ -23,16 +23,28 @@ class Television {
     this.player = document.createElement('video')
     this.player.preload = 'auto'
     this.player.loop = true
+    this.enabled = false
+    this.speed = 10
+    this.rotation = 0
   }
 
   playVideo (url) {
     this.player.src = url
     this.screen.texture = PIXI.Texture.fromVideo(this.player)
-    this.screen.visible = true
-    this.sprite.visible = true
+    let x = (Math.random() > 0.5) ? 80 : -80
+    let y = 80 * (Math.random() - Math.random())
+    if (Math.random() > 0.5) {
+      this.worldPosition = [x, y, 1]
+    } else {
+      this.worldPosition = [y, x, 1]
+    }
+    this.rotation = 2 * (Math.random() - Math.random())
+    this.enabled = true
+    this.speed = 10
   }
 
   stopVideo () {
+    this.enabled = false
     this.sprite.visible = false
     this.screen.visible = false
     this.screen.texture.destroy(true)
@@ -40,14 +52,25 @@ class Television {
   }
 
   update (dt, camera, debug) {
-    if (this.screen.visible === false) {
+    if (this.enabled === false) {
       return
     }
 
     let screenPosition = camera.worldToScreen(this.worldPosition, true)
 
-    if (!screenPosition) {
+    if (!screenPosition || this.worldPosition[2] > 2000) {
+      this.stopVideo()
       return
+    }
+
+    this.worldPosition[2] += this.speed * dt
+    if (this.worldPosition[2] > 80) {
+      this.speed += this.speed * dt
+    }
+
+    let alpha = (2000 - this.worldPosition[2]) / 1000
+    if (alpha > 1) {
+      alpha = 1
     }
 
     let screenRadius = camera.worldToScreen([this.worldRadius, this.worldRadius, this.worldPosition[2]])[0]
@@ -56,16 +79,18 @@ class Television {
     this.sprite.position.y = screenPosition[1]
     this.sprite.scale.x = screenRadius * 1.4 / this.sprite.texture.width
     this.sprite.scale.y = screenRadius / this.sprite.texture.height
-    this.sprite.rotation = camera.angle
+    this.sprite.rotation = this.rotation + camera.angle
     this.sprite.zOrder = this.worldPosition[2]
+    this.sprite.alpha = alpha
     this.sprite.visible = true
 
     this.screen.position.x = screenPosition[0]
     this.screen.position.y = screenPosition[1]
     this.screen.scale.x = screenRadius * 1.4 / this.screen.texture.width * 0.85
     this.screen.scale.y = screenRadius / this.screen.texture.height * 0.85
-    this.screen.rotation = camera.angle
+    this.screen.rotation = this.rotation + camera.angle
     this.screen.zOrder = this.worldPosition[2] + 1
+    this.screen.alpha = alpha
     this.screen.visible = true
   }
 

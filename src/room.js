@@ -65,7 +65,6 @@ class Room {
     }
     let index = Math.floor(Math.random() * this.data.videos.length)
     let url = this.data.videos[index].url
-    url = 'statics/43.mp4'
     console.debug('[video]', url)
     this.entities['tv'].playVideo(url)
   }
@@ -463,6 +462,7 @@ class Room {
 
   fini () {
     this.ready = false
+    this.entities['tv'].stopVideo()
     for (var id in this.entities) {
       let entity = this.entities[id]
       if (entity) {
