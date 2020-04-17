@@ -5,6 +5,8 @@ ArumaRoom
 
 Control light and music with your hands.
 
+![Debug Mode](https://kranzky.github.io/assets/arumaroom.png)
+
 Installation
 ------------
 
